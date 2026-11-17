@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { useDeleteUsage, useUpdateUsage } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
@@ -301,6 +302,16 @@ export function DayView({ home, date }) {
               ))}
             </div>
           </div>
+
+          {home.devices.length === 0 && (
+            <p className="border-t border-line py-6 text-[13.5px] text-ink-2">
+              Aún no hay aparatos. Añádelos en{' '}
+              <Link to="/aparatos" className="font-medium text-ink underline underline-offset-2">
+                Aparatos
+              </Link>{' '}
+              y aquí podrás apuntar cuándo los usas.
+            </p>
+          )}
 
           {home.devices.map((device) => (
             <div key={device.id} className={`${GRID} items-center border-t border-line hover:bg-hover`}>

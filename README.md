@@ -55,9 +55,8 @@ npm run db:setup
 npm run dev
 ```
 
-`db:setup` crea las tablas y las dos cuentas, cada una con unos aparatos de ejemplo, un contrato orientativo y
-una semana ya apuntada para que no se vea vacía. Se puede volver a lanzar sin miedo: las cuentas que ya existen
-no las toca.
+`db:setup` crea las tablas y las dos cuentas, vacías: sin aparatos, sin rutinas y con el contrato a cero. Cada
+uno mete lo suyo desde la web. Se puede volver a lanzar sin miedo: las cuentas que ya existen no las toca.
 
 La web queda en http://localhost:5173 y la API en http://localhost:3001 (Vite le pasa las llamadas a `/api`).
 

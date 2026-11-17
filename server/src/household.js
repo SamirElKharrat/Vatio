@@ -1,57 +1,31 @@
-import { Contract, Device, FixedLoad } from './models.js'
+import { Contract } from './models.js'
 
-// Punto de partida de una cuenta nueva: los aparatos y consumos fijos de la casa de
-// ejemplo del prototipo y un contrato de precio fijo con valores orientativos.
-const STARTER_DEVICES = [
-  { name: 'Lavadora', watts: 1200, defaultHours: 2, hue: 150 },
-  { name: 'Lavavajillas', watts: 1400, defaultHours: 1.5, hue: 205 },
-  { name: 'Horno', watts: 2000, defaultHours: 1, hue: 35 },
-  { name: 'Vitrocerámica', watts: 1800, defaultHours: 0.75, hue: 65 },
-  { name: 'Aire acondicionado', watts: 1100, defaultHours: 3, hue: 265 },
-  { name: 'Secadora', watts: 2500, defaultHours: 1.5, hue: 325 },
-  { name: 'Termo eléctrico', watts: 1500, defaultHours: 1.5, hue: 110 },
-]
-
-const STARTER_FIXED_LOADS = [
-  { name: 'Nevera', watts: 45, hue: 150, note: 'arranca por ciclos · media 45 W' },
-  { name: 'Congelador', watts: 35, hue: 205, note: 'siempre encendido' },
-  { name: 'Router y ONT', watts: 12, hue: 265, note: '24 h' },
-  { name: 'TV, consola y standby', watts: 22, hue: 35, note: 'en reposo' },
-]
-
-const starterContract = (userId) => ({
-  userId,
-  provider: null,
-  mode: 'fija',
-  fixedPrice: 0.1489,
-  pricePunta: 0.259,
-  priceLlano: 0.161,
-  priceValle: 0.095,
-  powerKwPuntaLlano: 4.6,
-  powerKwValle: 4.6,
-  powerPricePuntaLlano: 0.0817,
-  powerPriceValle: 0,
-  discounts: [],
-  dailyFees: [
-    { label: 'Financiación bono social', pricePerDay: 0.024688, inElectricityTaxBase: true, taxPct: 0 },
-    { label: 'Alquiler del contador', pricePerDay: 0.02663, inElectricityTaxBase: false, taxPct: 7 },
-  ],
-  electricityTaxPct: 5.1126963,
-  supplyTaxPct: 0,
-})
-
-/** Crea el contrato, los aparatos y los consumos fijos iniciales de una cuenta */
-export async function createStarterHousehold(userId, transaction) {
-  await Contract.create(starterContract(userId), { transaction })
-  const devices = await Device.bulkCreate(
-    STARTER_DEVICES.map((device) => ({ ...device, userId })),
+/**
+ * Una cuenta nueva empieza vacía: sin aparatos, consumos fijos ni rutinas, y con un contrato
+ * a cero que la persona rellena en Tarifa (o al importar su primera factura). El contrato
+ * tiene que existir porque todas las cuentas del consumo parten de él.
+ */
+export async function createEmptyHousehold(userId, transaction) {
+  await Contract.create(
+    {
+      userId,
+      provider: null,
+      mode: 'fija',
+      fixedPrice: 0,
+      pricePunta: 0,
+      priceLlano: 0,
+      priceValle: 0,
+      powerKwPuntaLlano: 0,
+      powerKwValle: 0,
+      powerPricePuntaLlano: 0,
+      powerPriceValle: 0,
+      discounts: [],
+      dailyFees: [],
+      electricityTaxPct: 0,
+      supplyTaxPct: 0,
+    },
     { transaction },
   )
-  await FixedLoad.bulkCreate(
-    STARTER_FIXED_LOADS.map((load) => ({ ...load, userId })),
-    { transaction },
-  )
-  return devices
 }
 
 // Formas que recibe el cliente: las mismas que usa su lógica de cálculo

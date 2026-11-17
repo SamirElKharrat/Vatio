@@ -79,7 +79,7 @@ function NewAccountForm() {
         {create.isPending ? 'Creando…' : 'Crear cuenta'}
       </Button>
       <p className="text-[12.5px] leading-normal text-ink-3">
-        La cuenta arranca con un contrato de ejemplo, siete aparatos y cuatro consumos fijos.
+        La cuenta arranca vacía: su dueño añade sus aparatos, sus rutinas y los datos de su contrato.
       </p>
     </form>
   )

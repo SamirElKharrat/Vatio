@@ -3,7 +3,7 @@ import { UniqueConstraintError } from 'sequelize'
 import { z } from 'zod'
 import { currentUser, hashPassword, publicUser } from '../auth.js'
 import { sequelize } from '../db.js'
-import { createStarterHousehold } from '../household.js'
+import { createEmptyHousehold } from '../household.js'
 import { HttpError, idParam, parse } from '../http.js'
 import { User } from '../models.js'
 
@@ -37,7 +37,7 @@ usersRouter.post('/', async (req, res) => {
   const user = await sequelize
     .transaction(async (transaction) => {
       const created = await User.create({ email, passwordHash, role: data.role }, { transaction })
-      await createStarterHousehold(created.id, transaction)
+      await createEmptyHousehold(created.id, transaction)
       return created
     })
     .catch((error) => {

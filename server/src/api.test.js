@@ -3,15 +3,32 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { app } from './app.js'
 import { hashPassword, sessionStore } from './auth.js'
 import { sequelize } from './db.js'
-import { createStarterHousehold } from './household.js'
-import { User } from './models.js'
+import { createEmptyHousehold } from './household.js'
+import { Device, FixedLoad, User } from './models.js'
 
 const PASSWORD = 'contraseña-de-prueba'
 const DATE = '2026-09-14'
 
+// Las cuentas reales empiezan vacías; las de los tests traen una casa ya montada
+const TEST_DEVICES = [
+  { name: 'Lavadora', watts: 1200, defaultHours: 2, hue: 150 },
+  { name: 'Lavavajillas', watts: 1400, defaultHours: 1.5, hue: 205 },
+  { name: 'Horno', watts: 2000, defaultHours: 1, hue: 35 },
+  { name: 'Vitrocerámica', watts: 1800, defaultHours: 0.75, hue: 65 },
+  { name: 'Aire acondicionado', watts: 1100, defaultHours: 3, hue: 265 },
+  { name: 'Secadora', watts: 2500, defaultHours: 1.5, hue: 325 },
+  { name: 'Termo eléctrico', watts: 1500, defaultHours: 1.5, hue: 110 },
+]
+const TEST_FIXED_LOADS = [
+  { name: 'Nevera', watts: 45, hue: 150, note: 'arranca por ciclos · media 45 W' },
+  { name: 'Router y ONT', watts: 12, hue: 265, note: '24 h' },
+]
+
 async function createAccount(email, role) {
   const user = await User.create({ email, role, passwordHash: await hashPassword(PASSWORD) })
-  await createStarterHousehold(user.id)
+  await createEmptyHousehold(user.id)
+  await Device.bulkCreate(TEST_DEVICES.map((device) => ({ ...device, userId: user.id })))
+  await FixedLoad.bulkCreate(TEST_FIXED_LOADS.map((load) => ({ ...load, userId: user.id })))
   return user
 }
 
@@ -93,15 +110,6 @@ describe('sesión', () => {
   })
 })
 
-describe('cuenta nueva', () => {
-  it('arranca con contrato de precio fijo, siete aparatos y cuatro consumos fijos', async () => {
-    const contract = await ana.get('/api/contract')
-    expect(contract.body.contract.mode).toBe('fija')
-    expect(contract.body.contract.power.puntaLlano).toEqual({ kw: 4.6, pricePerKwDay: 0.0817 })
-    expect((await ana.get('/api/devices')).body.devices).toHaveLength(7)
-    expect((await ana.get('/api/fixed-loads')).body.fixedLoads).toHaveLength(4)
-  })
-})
 
 describe('usos', () => {
   it('guarda un uso y lo devuelve al pedir ese día', async () => {
@@ -371,13 +379,23 @@ describe('gestión de cuentas', () => {
     expect(JSON.stringify(res.body)).not.toContain('passwordHash')
   })
 
-  it('crea una cuenta que ya puede entrar y tiene su casa inicial', async () => {
+  it('crea una cuenta que ya puede entrar y empieza vacía, con el contrato a cero', async () => {
     const created = await admin.post('/api/users').send({ email: 'Nueva@Test.local', password: PASSWORD })
     expect(created.status).toBe(201)
     expect(created.body.user).toMatchObject({ email: 'nueva@test.local', role: 'user', active: true })
 
     const nueva = await loginAs('nueva@test.local')
-    expect((await nueva.get('/api/devices')).body.devices).toHaveLength(7)
+    for (const [path, field] of [
+      ['/api/devices', 'devices'],
+      ['/api/fixed-loads', 'fixedLoads'],
+      ['/api/routines', 'routines'],
+      ['/api/invoices', 'invoices'],
+      [`/api/usages?from=${DATE}&to=${DATE}`, 'usages'],
+    ]) {
+      expect((await nueva.get(path)).body[field], path).toHaveLength(0)
+    }
+    const { contract } = (await nueva.get('/api/contract')).body
+    expect(contract).toMatchObject({ mode: 'fija', fixedPrice: 0, discounts: [], dailyFees: [] })
 
     const duplicate = await admin.post('/api/users').send({ email: 'nueva@test.local', password: PASSWORD })
     expect(duplicate.status).toBe(409)
