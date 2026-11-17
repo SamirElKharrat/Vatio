@@ -3,20 +3,20 @@ export const TUESDAY = '2026-09-15'
 export const SATURDAY = '2026-09-19'
 
 export const devices = [
-  { id: 'lav', name: 'Lavadora', watts: 1200, defaultHours: 2, hue: 150 },
-  { id: 'lvj', name: 'Lavavajillas', watts: 1400, defaultHours: 1.5, hue: 205 },
-  { id: 'hor', name: 'Horno', watts: 2000, defaultHours: 1, hue: 35 },
-  { id: 'vit', name: 'Vitrocerámica', watts: 1800, defaultHours: 0.75, hue: 65 },
-  { id: 'aire', name: 'Aire acondicionado', watts: 1100, defaultHours: 3, hue: 265 },
-  { id: 'sec', name: 'Secadora', watts: 2500, defaultHours: 1.5, hue: 325 },
-  { id: 'ter', name: 'Termo eléctrico', watts: 1500, defaultHours: 1.5, hue: 110 },
+  { id: 'lav', name: 'Lavadora', watts: 1200, defaultHours: 2, color: '#499e5f' },
+  { id: 'lvj', name: 'Lavavajillas', watts: 1400, defaultHours: 1.5, color: '#009ead' },
+  { id: 'hor', name: 'Horno', watts: 2000, defaultHours: 1, color: '#c96b53' },
+  { id: 'vit', name: 'Vitrocerámica', watts: 1800, defaultHours: 0.75, color: '#bc7728' },
+  { id: 'aire', name: 'Aire acondicionado', watts: 1100, defaultHours: 3, color: '#6486d5' },
+  { id: 'sec', name: 'Secadora', watts: 2500, defaultHours: 1.5, color: '#af6db3' },
+  { id: 'ter', name: 'Termo eléctrico', watts: 1500, defaultHours: 1.5, color: '#8e8f23' },
 ]
 
 export const fixedLoads = [
-  { id: 'nev', name: 'Nevera', watts: 45, hue: 150, note: 'arranca por ciclos · media 45 W' },
-  { id: 'con', name: 'Congelador', watts: 35, hue: 205, note: 'siempre encendido' },
-  { id: 'rou', name: 'Router y ONT', watts: 12, hue: 265, note: '24 h' },
-  { id: 'stb', name: 'TV, consola y standby', watts: 22, hue: 35, note: 'en reposo' },
+  { id: 'nev', name: 'Nevera', watts: 45, color: '#499e5f', note: 'arranca por ciclos · media 45 W' },
+  { id: 'con', name: 'Congelador', watts: 35, color: '#009ead', note: 'siempre encendido' },
+  { id: 'rou', name: 'Router y ONT', watts: 12, color: '#6486d5', note: '24 h' },
+  { id: 'stb', name: 'TV, consola y standby', watts: 22, color: '#c96b53', note: 'en reposo' },
 ]
 
 export const routines = [

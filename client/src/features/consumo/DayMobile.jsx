@@ -85,7 +85,7 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
                 style={{
                   left: `${(usage.start / 24) * 100}%`,
                   width: `${(usage.hours / 24) * 100}%`,
-                  background: usage.routineId ? deviceColorSoft(device.hue) : deviceColor(device.hue),
+                  background: usage.routineId ? deviceColorSoft(device.color) : deviceColor(device.color),
                 }}
               />
             )
@@ -169,7 +169,7 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
           >
             <span
               className="grid size-11 flex-none place-items-center rounded-panel font-mono text-[12px] font-medium text-white"
-              style={{ background: deviceColor(device.hue) }}
+              style={{ background: deviceColor(device.color) }}
             >
               {formatHM(usage.start).slice(0, 2)}h
             </span>

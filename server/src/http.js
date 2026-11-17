@@ -61,7 +61,8 @@ export const errorHandler = (err, _req, res, _next) => {
 export const quarter = (n) => Number.isInteger(Math.round(n * 4 * 1e6) / 1e6)
 
 export const dateSchema = z.iso.date()
-export const hueSchema = z.number().int().min(0).max(359)
+// Color de un aparato o consumo fijo, en hexadecimal (#rrggbb)
+export const colorSchema = z.string().regex(/^#[0-9a-f]{6}$/i, 'El color debe ir como #rrggbb').transform((c) => c.toLowerCase())
 export const wattsSchema = z.number().int().min(1).max(100000)
 
 /** Inicio y duración de un uso: en cuartos de hora y sin pasar de medianoche */

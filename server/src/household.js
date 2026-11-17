@@ -35,7 +35,7 @@ export const deviceJson = (device) => ({
   name: device.name,
   watts: device.watts,
   defaultHours: device.defaultHours,
-  hue: device.hue,
+  color: device.color,
 })
 
 export const usageJson = (usage) => ({
@@ -50,7 +50,7 @@ export const fixedLoadJson = (load) => ({
   id: load.id,
   name: load.name,
   watts: load.watts,
-  hue: load.hue,
+  color: load.color,
   note: load.note,
 })
 

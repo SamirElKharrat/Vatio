@@ -5,14 +5,14 @@ import { ConfirmDelete } from '../../components/ui/ConfirmDelete'
 import { Field } from '../../components/ui/Field'
 import { Modal } from '../../components/ui/Modal'
 import { ErrorNotice } from '../../components/ui/Notice'
-import { HuePicker } from '../../components/pickers'
+import { ColorPicker } from '../../components/pickers'
 
 /** Diálogo para dar de alta o cambiar un aparato o un consumo fijo: nombre, vatios, un dato más y color */
 export function ItemEditor(props) {
   const [name, setName] = useState(props.initial.name)
   const [watts, setWatts] = useState(String(props.initial.watts))
   const [extra, setExtra] = useState(props.initial.extra)
-  const [hue, setHue] = useState(props.initial.hue)
+  const [color, setColor] = useState(props.initial.color)
   const [problem, setProblem] = useState('')
   const [confirming, setConfirming] = useState(false)
 
@@ -24,7 +24,7 @@ export function ItemEditor(props) {
     const extraProblem = props.validateExtra?.(extra)
     if (extraProblem) return setProblem(extraProblem)
     setProblem('')
-    props.onSave({ name: name.trim(), watts: parsedWatts, hue, extra: extra.trim() })
+    props.onSave({ name: name.trim(), watts: parsedWatts, color, extra: extra.trim() })
   }
 
   const message = problem || (props.error ? errorMessage(props.error) : '')
@@ -54,7 +54,7 @@ export function ItemEditor(props) {
         {props.extraHint && <p className="mt-2 text-[12px] leading-normal text-ink-3 sm:pl-[122px]">{props.extraHint}</p>}
 
         <div className="label mt-5 mb-2.5">Color</div>
-        <HuePicker value={hue} onChange={setHue} />
+        <ColorPicker value={color} onChange={setColor} />
 
         {message && (
           <div className="mt-3">

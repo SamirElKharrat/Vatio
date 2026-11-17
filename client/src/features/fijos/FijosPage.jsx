@@ -11,7 +11,7 @@ import { eur, kwh } from '../../domain/format'
 import { routineStatus, routineWhen } from '../../domain/routines'
 import { addDays, formatHM, startOfWeek } from '../../domain/time'
 import { dayTitle, shortDate, todayISO } from '../../lib/dates'
-import { firstFreeHue } from '../../lib/hues'
+import { firstFreeColor } from '../../lib/palette'
 import { ItemEditor } from '../aparatos/ItemEditor'
 import { deviceColor } from '../consumo/colors'
 import { RoutineEditor } from './RoutineEditor'
@@ -44,7 +44,7 @@ function FixedLoads({ home, today }) {
   }
 
   function save(values) {
-    const input = { name: values.name, watts: values.watts, hue: values.hue, note: values.extra }
+    const input = { name: values.name, watts: values.watts, color: values.color, note: values.extra }
     if (editing === 'new') crud.create.mutate(input, { onSuccess: close })
     else if (editing) crud.save.mutate({ id: editing.id, changes: input }, { onSuccess: close })
   }
@@ -95,7 +95,7 @@ function FixedLoads({ home, today }) {
         return (
           <div key={load.id} className="border-b border-line py-4">
             <div className="flex items-center gap-[11px]">
-              <span className="size-[11px] flex-none rounded-swatch" style={{ background: deviceColor(load.hue) }} />
+              <span className="size-[11px] flex-none rounded-swatch" style={{ background: deviceColor(load.color) }} />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[14.5px] max-sm:text-[15px] max-sm:font-medium">{load.name}</div>
                 {load.note && (
@@ -119,7 +119,7 @@ function FixedLoads({ home, today }) {
               <div className="h-1.5 flex-1 overflow-hidden rounded-swatch bg-ink/8">
                 <div
                   className="h-full rounded-swatch"
-                  style={{ width: `${(load.watts / wattsMax) * 100}%`, background: deviceColor(load.hue) }}
+                  style={{ width: `${(load.watts / wattsMax) * 100}%`, background: deviceColor(load.color) }}
                 />
               </div>
               <span className="w-[80px] text-right font-mono text-[12px] text-ink-3">{kwh(usageKwh(load.watts, 24))}</span>
@@ -141,8 +141,8 @@ function FixedLoads({ home, today }) {
           isEdit={editing !== 'new'}
           initial={
             editing === 'new'
-              ? { name: '', watts: 20, hue: firstFreeHue(home.fixedLoads.map((load) => load.hue)), extra: '' }
-              : { name: editing.name, watts: editing.watts, hue: editing.hue, extra: editing.note }
+              ? { name: '', watts: 20, color: firstFreeColor(home.fixedLoads.map((load) => load.color)), extra: '' }
+              : { name: editing.name, watts: editing.watts, color: editing.color, extra: editing.note }
           }
           extraLabel="Nota"
           extraPlaceholder="siempre encendido"
@@ -170,7 +170,7 @@ function RoutineCard({ routine, home, today, onEdit }) {
   const skipped = status === 'skipped'
   // Pausa puesta para un día que aún no ha llegado: hoy sigue en marcha y la pausa se puede quitar
   const pauseLater = routine.pausedFrom !== null && !paused
-  const color = deviceColor(device.hue)
+  const color = deviceColor(device.color)
   const error = skip.error ?? pause.error
   // Pausada o saltada se ve apagada, pero los botones siguen a la vista para reanudarla o editarla
   const faded = paused || skipped ? 'opacity-60' : ''

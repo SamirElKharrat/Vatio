@@ -47,7 +47,7 @@ function Comparison({ invoice }) {
     ...home.devices.map((device) => ({
       name: device.name,
       cost: logged.byDevice[device.id]?.cost ?? 0,
-      color: deviceColor(device.hue),
+      color: deviceColor(device.color),
     })),
     { name: 'Consumos fijos', cost: logged.fixed.cost, color: 'rgba(0,0,0,.35)' },
   ]

@@ -8,7 +8,7 @@ import { periodSummary } from '../../domain/aggregates'
 import { eur, kwh } from '../../domain/format'
 import { addDays, datesBetween, formatHM, parseHM, startOfWeek } from '../../domain/time'
 import { monthRange, todayISO } from '../../lib/dates'
-import { firstFreeHue } from '../../lib/hues'
+import { firstFreeColor } from '../../lib/palette'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { deviceColor } from '../consumo/colors'
 import { ItemEditor } from './ItemEditor'
@@ -65,7 +65,7 @@ export function AparatosPage() {
   }
 
   function save(values) {
-    const input = { name: values.name, watts: values.watts, hue: values.hue, defaultHours: parseDuration(values.extra) }
+    const input = { name: values.name, watts: values.watts, color: values.color, defaultHours: parseDuration(values.extra) }
     const options = { onSuccess: close }
     if (editing === 'new') crud.create.mutate(input, options)
     else if (editing) crud.save.mutate({ id: editing.id, changes: input }, options)
@@ -105,7 +105,7 @@ export function AparatosPage() {
             return (
               <div key={device.id} className="border-b border-line py-4">
                 <div className="flex items-center gap-3">
-                  <span className="size-3 flex-none rounded-[4px]" style={{ background: deviceColor(device.hue) }} />
+                  <span className="size-3 flex-none rounded-[4px]" style={{ background: deviceColor(device.color) }} />
                   <span className="min-w-0 flex-1 truncate text-[15.5px] font-medium">{device.name}</span>
                   <NumberInput
                     label={`Potencia de ${device.name}`}
@@ -121,7 +121,7 @@ export function AparatosPage() {
                   <div className="h-1.5 flex-1 overflow-hidden rounded-swatch bg-ink/8">
                     <div
                       className="h-full rounded-swatch"
-                      style={{ width: `${(totals.cost / costMax) * 100}%`, background: deviceColor(device.hue) }}
+                      style={{ width: `${(totals.cost / costMax) * 100}%`, background: deviceColor(device.color) }}
                     />
                   </div>
                   <span className={`font-mono text-[13px] ${totals.cost ? 'font-medium text-ink' : 'text-ink-4'}`}>
@@ -170,7 +170,7 @@ export function AparatosPage() {
               return (
                 <div key={device.id} className={`${GRID} border-b border-line py-3 hover:bg-hover`}>
                   <div className="flex min-w-0 items-center gap-[11px]">
-                    <span className="size-[11px] flex-none rounded-swatch" style={{ background: deviceColor(device.hue) }} />
+                    <span className="size-[11px] flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />
                     <span className="truncate text-[14px]">{device.name}</span>
                   </div>
                   <div className="text-center">
@@ -190,7 +190,7 @@ export function AparatosPage() {
                     <div className="h-1.5 flex-1 overflow-hidden rounded-swatch bg-ink/8">
                       <div
                         className="h-full rounded-swatch"
-                        style={{ width: `${(totals.cost / costMax) * 100}%`, background: deviceColor(device.hue) }}
+                        style={{ width: `${(totals.cost / costMax) * 100}%`, background: deviceColor(device.color) }}
                       />
                     </div>
                     <span className={`w-[60px] text-right font-mono text-[13px] ${dim(totals.cost) || 'font-medium'}`}>
@@ -220,8 +220,8 @@ export function AparatosPage() {
           isEdit={editing !== 'new'}
           initial={
             editing === 'new'
-              ? { name: '', watts: 1000, hue: firstFreeHue(devices.map((device) => device.hue)), extra: '1:00' }
-              : { name: editing.name, watts: editing.watts, hue: editing.hue, extra: formatHM(editing.defaultHours) }
+              ? { name: '', watts: 1000, color: firstFreeColor(devices.map((device) => device.color)), extra: '1:00' }
+              : { name: editing.name, watts: editing.watts, color: editing.color, extra: formatHM(editing.defaultHours) }
           }
           extraLabel="Duración"
           extraPlaceholder="1:30"

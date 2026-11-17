@@ -13,7 +13,7 @@ import { formatHM, parseRange, QUARTER } from '../../domain/time'
 import { firstFreeSlot, hasOverlap } from '../../domain/usages'
 import { dayTitle } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
-import { BAND_BG, BAND_NAME, deviceColor } from './colors'
+import { BAND_BG, BAND_NAME, deviceColor, deviceText } from './colors'
 
 const RANGE_ERRORS = {
   formato: 'Escribe las horas como 19:30',
@@ -218,7 +218,7 @@ export function UsageEditor({ target, date, devices, contract, dayUsages, onDele
                   aria-pressed={selected}
                   onClick={() => setRange(hour, Math.min(hours, 24 - hour))}
                   className={`h-10 rounded-block font-mono text-[12.5px] font-medium ${selected ? 'bg-ink text-white' : `text-ink-2 ${idle}`}`}
-                  style={selected && device ? { background: deviceColor(device.hue) } : undefined}
+                  style={selected && device ? { background: deviceColor(device.color), color: deviceText(device.color) } : undefined}
                 >
                   {String(hour).padStart(2, '0')}
                 </button>

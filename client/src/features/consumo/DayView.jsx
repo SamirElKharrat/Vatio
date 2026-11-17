@@ -14,7 +14,7 @@ import { addDays, datesBetween, formatHM, startOfWeek, weekdayOf } from '../../d
 import { hasOverlap } from '../../domain/usages'
 import { dayTitle, todayISO } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
-import { BAND_BG, BAND_NAME, BAND_SOFT, deviceBorder, deviceColor, deviceColorSoft, deviceInk } from './colors'
+import { BAND_BG, BAND_NAME, BAND_SOFT, deviceBorder, deviceColor, deviceColorSoft, deviceInk, deviceText } from './colors'
 import { DayMobile } from './DayMobile'
 import { TodayLink } from './TodayLink'
 import { useBlockDrag } from './useBlockDrag'
@@ -87,9 +87,9 @@ function UsageBlock({ usage, device, contract, drag, clash, onPointerDown, onOpe
       style={{
         left: `${(usage.start / 24) * 100}%`,
         width: `${(usage.hours / 24) * 100}%`,
-        background: auto ? deviceColorSoft(device.hue) : deviceColor(device.hue),
-        borderColor: deviceBorder(device.hue),
-        color: auto ? deviceInk(device.hue) : 'white',
+        background: auto ? deviceColorSoft(device.color) : deviceColor(device.color),
+        borderColor: deviceBorder(device.color),
+        color: auto ? deviceInk(device.color) : deviceText(device.color),
         opacity: dragging ? 0.6 : 1,
         boxShadow: dragging
           ? '0 8px 18px -4px rgb(38 33 27 / .35)'
@@ -316,7 +316,7 @@ export function DayView({ home, date }) {
           {home.devices.map((device) => (
             <div key={device.id} className={`${GRID} items-center border-t border-line hover:bg-hover`}>
               <div className="flex items-center gap-2.5 pr-3.5 pl-1">
-                <span className="size-2.5 flex-none rounded-swatch" style={{ background: deviceColor(device.hue) }} />
+                <span className="size-2.5 flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />
                 <span className="flex-1 truncate text-[13.5px] leading-tight">{device.name}</span>
                 <span className="font-mono text-[11px] text-ink-3">{device.watts} W</span>
                 <button
@@ -379,7 +379,7 @@ export function DayView({ home, date }) {
             const band = bandAt(date, Math.floor(usage.start))
             return (
               <div key={usage.id} className="flex items-center gap-3 border-t border-line px-1 py-2.5 last:border-b hover:bg-hover">
-                <span className="size-2.5 flex-none rounded-swatch" style={{ background: deviceColor(device.hue) }} />
+                <span className="size-2.5 flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />
                 <span className="w-[176px] flex-none truncate text-[13.5px]">{device.name}</span>
                 <span className="w-[112px] flex-none font-mono text-[12px] text-ink-2">
                   {formatHM(usage.start)}–{formatHM(usage.start + usage.hours)}

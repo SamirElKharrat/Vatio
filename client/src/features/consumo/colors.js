@@ -1,9 +1,15 @@
-/** Todos los aparatos comparten claridad y saturación; sólo cambia el tono */
-export const deviceColor = (hue) => `oklch(0.63 0.125 ${hue})`
-export const deviceColorSoft = (hue) => `oklch(0.63 0.125 ${hue} / 0.45)`
-export const deviceBorder = (hue) => `oklch(0.52 0.12 ${hue})`
-/** Tinta del mismo tono, para escribir sobre el color suave de las rutinas */
-export const deviceInk = (hue) => `oklch(0.36 0.09 ${hue})`
+import { luminance } from '../../lib/palette'
+
+// El color de cada aparato es un #rrggbb; los demás se derivan de él
+
+export const deviceColor = (color) => color
+/** Versión translúcida, para las rutinas */
+export const deviceColorSoft = (color) => `${color}73`
+export const deviceBorder = (color) => `color-mix(in oklab, ${color} 82%, black)`
+/** Tinta del mismo color, para escribir sobre el color suave de las rutinas */
+export const deviceInk = (color) => `color-mix(in oklab, ${color} 42%, black)`
+/** Texto legible sobre el color sólido: blanco, salvo en los colores claros, donde va una tinta oscura del mismo color */
+export const deviceText = (color) => (luminance(color) > 0.3 ? `color-mix(in oklab, ${color} 32%, black)` : 'white')
 
 export const BAND_NAME = { valle: 'Valle', llano: 'Llano', punta: 'Punta' }
 export const BAND_BG = { valle: 'bg-valle', llano: 'bg-llano', punta: 'bg-punta' }

@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { currentUser } from '../auth.js'
 import { deviceJson, fixedLoadJson } from '../household.js'
-import { HttpError, hueSchema, idParam, parse, quarter, wattsSchema } from '../http.js'
+import { HttpError, colorSchema, idParam, parse, quarter, wattsSchema } from '../http.js'
 import { Device, FixedLoad } from '../models.js'
 
 const nameSchema = z.string().trim().min(1, 'Falta el nombre').max(80)
@@ -16,7 +16,7 @@ const deviceSchema = z.object({
   watts: wattsSchema,
   // En cuartos de hora, como los usos que se proponen con ella
   defaultHours: z.number().min(0.25).max(24).refine(quarter, 'La duración debe ir en cuartos de hora'),
-  hue: hueSchema,
+  color: colorSchema,
 })
 
 devicesRouter.get('/', async (_req, res) => {
@@ -57,7 +57,7 @@ export const fixedLoadsRouter = Router()
 const fixedLoadShape = {
   name: nameSchema,
   watts: wattsSchema,
-  hue: hueSchema,
+  color: colorSchema,
   note: z.string().trim().max(200),
 }
 // El valor por defecto va sólo al crear: en un cambio parcial borraría la nota que no se envía

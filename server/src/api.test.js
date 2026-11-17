@@ -11,17 +11,17 @@ const DATE = '2026-09-14'
 
 // Las cuentas reales empiezan vacías; las de los tests traen una casa ya montada
 const TEST_DEVICES = [
-  { name: 'Lavadora', watts: 1200, defaultHours: 2, hue: 150 },
-  { name: 'Lavavajillas', watts: 1400, defaultHours: 1.5, hue: 205 },
-  { name: 'Horno', watts: 2000, defaultHours: 1, hue: 35 },
-  { name: 'Vitrocerámica', watts: 1800, defaultHours: 0.75, hue: 65 },
-  { name: 'Aire acondicionado', watts: 1100, defaultHours: 3, hue: 265 },
-  { name: 'Secadora', watts: 2500, defaultHours: 1.5, hue: 325 },
-  { name: 'Termo eléctrico', watts: 1500, defaultHours: 1.5, hue: 110 },
+  { name: 'Lavadora', watts: 1200, defaultHours: 2, color: '#499e5f' },
+  { name: 'Lavavajillas', watts: 1400, defaultHours: 1.5, color: '#009ead' },
+  { name: 'Horno', watts: 2000, defaultHours: 1, color: '#c96b53' },
+  { name: 'Vitrocerámica', watts: 1800, defaultHours: 0.75, color: '#bc7728' },
+  { name: 'Aire acondicionado', watts: 1100, defaultHours: 3, color: '#6486d5' },
+  { name: 'Secadora', watts: 2500, defaultHours: 1.5, color: '#af6db3' },
+  { name: 'Termo eléctrico', watts: 1500, defaultHours: 1.5, color: '#8e8f23' },
 ]
 const TEST_FIXED_LOADS = [
-  { name: 'Nevera', watts: 45, hue: 150, note: 'arranca por ciclos · media 45 W' },
-  { name: 'Router y ONT', watts: 12, hue: 265, note: '24 h' },
+  { name: 'Nevera', watts: 45, color: '#499e5f', note: 'arranca por ciclos · media 45 W' },
+  { name: 'Router y ONT', watts: 12, color: '#6486d5', note: '24 h' },
 ]
 
 async function createAccount(email, role) {

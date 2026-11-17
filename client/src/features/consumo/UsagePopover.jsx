@@ -20,7 +20,7 @@ export function UsagePopover({ usage, device, routine, weekDays, contract, onEdi
   const error = skip.error ?? pause.error
 
   return (
-    <Modal open onClose={onClose} title={device.name} aside={range} swatch={deviceColor(device.hue)} width={410}>
+    <Modal open onClose={onClose} title={device.name} aside={range} swatch={deviceColor(device.color)} width={410}>
       <div className="mt-2.5 font-mono text-[12.5px] text-ink-2">{detail}</div>
 
       {routine ? (
