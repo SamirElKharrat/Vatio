@@ -1,0 +1,20 @@
+# Blueprint de Render: sólo la API. La web la sirve Vercel y la base de datos está en Supabase.
+services:
+  - type: web
+    name: vatios-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --workspace server
+    # Las migraciones pendientes se aplican en cada arranque; si no hay ninguna, no hacen nada
+    startCommand: npm run db:migrate -w server && npm run start -w server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true

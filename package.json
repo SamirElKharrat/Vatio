@@ -1,0 +1,23 @@
+{
+  "name": "vatios",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c gray,yellow \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run build && npm run start -w server",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:setup": "npm run db:migrate -w server && npm run db:seed -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}

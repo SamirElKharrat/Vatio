@@ -1,0 +1,481 @@
+[
+ {
+  "page": 1,
+  "y": 692,
+  "items": [
+   {
+    "x": 47,
+    "text": "Disa Energía Eléctrica S.L.U"
+   }
+  ],
+  "text": "Disa Energía Eléctrica S.L.U"
+ },
+ {
+  "page": 1,
+  "y": 573,
+  "items": [
+   {
+    "x": 253,
+    "text": "Total importe factura:"
+   }
+  ],
+  "text": "Total importe factura:"
+ },
+ {
+  "page": 1,
+  "y": 541,
+  "items": [
+   {
+    "x": 253,
+    "text": "Periodo consumo:"
+   },
+   {
+    "x": 392,
+    "text": "de"
+   },
+   {
+    "x": 410,
+    "text": "28/08/2026"
+   }
+  ],
+  "text": "Periodo consumo: de 28/08/2026"
+ },
+ {
+  "page": 1,
+  "y": 530,
+  "items": [
+   {
+    "x": 392,
+    "text": "a"
+   },
+   {
+    "x": 410,
+    "text": "19/09/2026"
+   }
+  ],
+  "text": "a 19/09/2026"
+ },
+ {
+  "page": 1,
+  "y": 279,
+  "items": [
+   {
+    "x": 253,
+    "text": "Total importe factura:"
+   },
+   {
+    "x": 471,
+    "text": "32,95 €"
+   }
+  ],
+  "text": "Total importe factura: 32,95 €"
+ },
+ {
+  "page": 2,
+  "y": 688,
+  "items": [
+   {
+    "x": 168,
+    "text": "P1"
+   },
+   {
+    "x": 185,
+    "text": "3,00"
+   },
+   {
+    "x": 221,
+    "text": "P3"
+   },
+   {
+    "x": 238,
+    "text": "3,00"
+   },
+   {
+    "x": 274,
+    "text": "P2"
+   },
+   {
+    "x": 290,
+    "text": "0,00"
+   }
+  ],
+  "text": "P1 3,00 P3 3,00 P2 0,00"
+ },
+ {
+  "page": 2,
+  "y": 473,
+  "items": [
+   {
+    "x": 68,
+    "text": "P1 3,000 kW x 23 Días x 0,09990900 €/kW día"
+   },
+   {
+    "x": 431,
+    "text": "6,89 €"
+   }
+  ],
+  "text": "P1 3,000 kW x 23 Días x 0,09990900 €/kW día 6,89 €"
+ },
+ {
+  "page": 2,
+  "y": 461,
+  "items": [
+   {
+    "x": 68,
+    "text": "P3 3,000 kW x 23 Días x 0,09990900 €/kW día"
+   },
+   {
+    "x": 431,
+    "text": "6,89 €"
+   }
+  ],
+  "text": "P3 3,000 kW x 23 Días x 0,09990900 €/kW día 6,89 €"
+ },
+ {
+  "page": 2,
+  "y": 434,
+  "items": [
+   {
+    "x": 68,
+    "text": "P1 26,517 kWh x 0,109000 €/kWh"
+   },
+   {
+    "x": 431,
+    "text": "2,89 €"
+   }
+  ],
+  "text": "P1 26,517 kWh x 0,109000 €/kWh 2,89 €"
+ },
+ {
+  "page": 2,
+  "y": 422,
+  "items": [
+   {
+    "x": 68,
+    "text": "P2 23,259 kWh x 0,109000 €/kWh"
+   },
+   {
+    "x": 432,
+    "text": "2,54 €"
+   }
+  ],
+  "text": "P2 23,259 kWh x 0,109000 €/kWh 2,54 €"
+ },
+ {
+  "page": 2,
+  "y": 410,
+  "items": [
+   {
+    "x": 68,
+    "text": "P3 63,038 kWh x 0,109000 €/kWh"
+   },
+   {
+    "x": 432,
+    "text": "6,87 €"
+   }
+  ],
+  "text": "P3 63,038 kWh x 0,109000 €/kWh 6,87 €"
+ },
+ {
+  "page": 2,
+  "y": 395,
+  "items": [
+   {
+    "x": 62,
+    "text": "Productos"
+   }
+  ],
+  "text": "Productos"
+ },
+ {
+  "page": 2,
+  "y": 383,
+  "items": [
+   {
+    "x": 68,
+    "text": "Actuaciones en la medida"
+   },
+   {
+    "x": 430,
+    "text": "9,04 €"
+   }
+  ],
+  "text": "Actuaciones en la medida 9,04 €"
+ },
+ {
+  "page": 2,
+  "y": 371,
+  "items": [
+   {
+    "x": 68,
+    "text": "Descuento Fidelización"
+   },
+   {
+    "x": 428,
+    "text": "-5,00 €"
+   }
+  ],
+  "text": "Descuento Fidelización -5,00 €"
+ },
+ {
+  "page": 2,
+  "y": 359,
+  "items": [
+   {
+    "x": 68,
+    "text": "Bono Social"
+   },
+   {
+    "x": 430,
+    "text": "0,44 €"
+   }
+  ],
+  "text": "Bono Social 0,44 €"
+ },
+ {
+  "page": 2,
+  "y": 344,
+  "items": [
+   {
+    "x": 62,
+    "text": "Impuesto Electricidad"
+   }
+  ],
+  "text": "Impuesto Electricidad"
+ },
+ {
+  "page": 2,
+  "y": 332,
+  "items": [
+   {
+    "x": 68,
+    "text": "5,11269632 % sobre 21,52 € x 1"
+   },
+   {
+    "x": 433,
+    "text": "1,10 €"
+   }
+  ],
+  "text": "5,11269632 % sobre 21,52 € x 1 1,10 €"
+ },
+ {
+  "page": 2,
+  "y": 317,
+  "items": [
+   {
+    "x": 62,
+    "text": "Alquiler Equipo Distribuidora"
+   }
+  ],
+  "text": "Alquiler Equipo Distribuidora"
+ },
+ {
+  "page": 2,
+  "y": 305,
+  "items": [
+   {
+    "x": 68,
+    "text": "Alquiler Equipo Distribuidora"
+   },
+   {
+    "x": 432,
+    "text": "0,61 €"
+   }
+  ],
+  "text": "Alquiler Equipo Distribuidora 0,61 €"
+ },
+ {
+  "page": 2,
+  "y": 104,
+  "items": [
+   {
+    "x": 65,
+    "text": "Impuesto IGIC DOMÉSTICOS 2020 (0,0"
+   },
+   {
+    "x": 197,
+    "text": "%"
+   },
+   {
+    "x": 204,
+    "text": ") al 22,62"
+   },
+   {
+    "x": 444,
+    "text": "-"
+   },
+   {
+    "x": 452,
+    "text": "€"
+   }
+  ],
+  "text": "Impuesto IGIC DOMÉSTICOS 2020 (0,0 % ) al 22,62 - €"
+ },
+ {
+  "page": 2,
+  "y": 93,
+  "items": [
+   {
+    "x": 65,
+    "text": "Impuesto IGIC DOMÉSTICOS 2020 (7,0"
+   },
+   {
+    "x": 195,
+    "text": "%"
+   },
+   {
+    "x": 203,
+    "text": ") al 9,65"
+   },
+   {
+    "x": 434,
+    "text": "0,68 €"
+   }
+  ],
+  "text": "Impuesto IGIC DOMÉSTICOS 2020 (7,0 % ) al 9,65 0,68 €"
+ },
+ {
+  "page": 2,
+  "y": 78,
+  "items": [
+   {
+    "x": 65,
+    "text": "Total importe factura"
+   },
+   {
+    "x": 432,
+    "text": "32,95 €"
+   }
+  ],
+  "text": "Total importe factura 32,95 €"
+ },
+ {
+  "page": 3,
+  "y": 428,
+  "items": [
+   {
+    "x": 53,
+    "text": "P1"
+   },
+   {
+    "x": 97,
+    "text": "25.251"
+   },
+   {
+    "x": 150,
+    "text": "25.277"
+   },
+   {
+    "x": 214,
+    "text": "27"
+   },
+   {
+    "x": 280,
+    "text": "0"
+   },
+   {
+    "x": 338,
+    "text": "0"
+   },
+   {
+    "x": 393,
+    "text": "0"
+   },
+   {
+    "x": 445,
+    "text": "0"
+   },
+   {
+    "x": 500,
+    "text": "0"
+   }
+  ],
+  "text": "P1 25.251 25.277 27 0 0 0 0 0"
+ },
+ {
+  "page": 3,
+  "y": 416,
+  "items": [
+   {
+    "x": 53,
+    "text": "P2"
+   },
+   {
+    "x": 100,
+    "text": "6.421"
+   },
+   {
+    "x": 153,
+    "text": "6.445"
+   },
+   {
+    "x": 214,
+    "text": "23"
+   },
+   {
+    "x": 280,
+    "text": "0"
+   },
+   {
+    "x": 338,
+    "text": "0"
+   },
+   {
+    "x": 393,
+    "text": "0"
+   },
+   {
+    "x": 445,
+    "text": "0"
+   },
+   {
+    "x": 500,
+    "text": "0"
+   }
+  ],
+  "text": "P2 6.421 6.445 23 0 0 0 0 0"
+ },
+ {
+  "page": 3,
+  "y": 404,
+  "items": [
+   {
+    "x": 53,
+    "text": "P3"
+   },
+   {
+    "x": 99,
+    "text": "6.952"
+   },
+   {
+    "x": 155,
+    "text": "7.015"
+   },
+   {
+    "x": 213,
+    "text": "63"
+   },
+   {
+    "x": 280,
+    "text": "0"
+   },
+   {
+    "x": 338,
+    "text": "0"
+   },
+   {
+    "x": 393,
+    "text": "0"
+   },
+   {
+    "x": 445,
+    "text": "0"
+   },
+   {
+    "x": 500,
+    "text": "0"
+   }
+  ],
+  "text": "P3 6.952 7.015 63 0 0 0 0 0"
+ }
+]

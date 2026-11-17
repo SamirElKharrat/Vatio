@@ -1,0 +1,397 @@
+[
+ {
+  "page": 1,
+  "y": 764,
+  "items": [
+   {
+    "x": 310,
+    "text": "Periodo de facturación: del 04/08/2026 a 03/09/2026 (30 días)"
+   }
+  ],
+  "text": "Periodo de facturación: del 04/08/2026 a 03/09/2026 (30 días)"
+ },
+ {
+  "page": 1,
+  "y": 717,
+  "items": [
+   {
+    "x": 37,
+    "text": "Endesa Energía, S.A. Unipersonal."
+   }
+  ],
+  "text": "Endesa Energía, S.A. Unipersonal."
+ },
+ {
+  "page": 1,
+  "y": 546,
+  "items": [
+   {
+    "x": 47,
+    "text": "PARA TI"
+   },
+   {
+    "x": 246,
+    "text": "-5,00 €"
+   }
+  ],
+  "text": "PARA TI -5,00 €"
+ },
+ {
+  "page": 1,
+  "y": 418,
+  "items": [
+   {
+    "x": 47,
+    "text": "Consumo Total"
+   },
+   {
+    "x": 235,
+    "text": "265,147 kWh"
+   },
+   {
+    "x": 346,
+    "text": "350"
+   }
+  ],
+  "text": "Consumo Total 265,147 kWh 350"
+ },
+ {
+  "page": 2,
+  "y": 671,
+  "items": [
+   {
+    "x": 44,
+    "text": "Pot. Punta-Llano 5,750 kW x 0,117686 Eur/kW x 30 días"
+   },
+   {
+    "x": 273,
+    "text": "20,30 €"
+   }
+  ],
+  "text": "Pot. Punta-Llano 5,750 kW x 0,117686 Eur/kW x 30 días 20,30 €"
+ },
+ {
+  "page": 2,
+  "y": 663,
+  "items": [
+   {
+    "x": 44,
+    "text": "Pot. P3 5,750 kW x 0,041554 Eur/kW x 30 días"
+   },
+   {
+    "x": 277,
+    "text": "7,17 €"
+   }
+  ],
+  "text": "Pot. P3 5,750 kW x 0,041554 Eur/kW x 30 días 7,17 €"
+ },
+ {
+  "page": 2,
+  "y": 643,
+  "items": [
+   {
+    "x": 44,
+    "text": "Facturación del Consumo 220,430 kWh x 0,176956 Eur/kWh"
+   },
+   {
+    "x": 273,
+    "text": "39,01 €"
+   }
+  ],
+  "text": "Facturación del Consumo 220,430 kWh x 0,176956 Eur/kWh 39,01 €"
+ },
+ {
+  "page": 2,
+  "y": 635,
+  "items": [
+   {
+    "x": 44,
+    "text": "Facturación del Consumo 44,717 kWh x 0,176956 Eur/kWh"
+   },
+   {
+    "x": 277,
+    "text": "7,91 €"
+   }
+  ],
+  "text": "Facturación del Consumo 44,717 kWh x 0,176956 Eur/kWh 7,91 €"
+ },
+ {
+  "page": 2,
+  "y": 618,
+  "items": [
+   {
+    "x": 44,
+    "text": "Descuento por servicio 39,01 Eur x -3,00 %"
+   },
+   {
+    "x": 274,
+    "text": "-1,17 €"
+   }
+  ],
+  "text": "Descuento por servicio 39,01 Eur x -3,00 % -1,17 €"
+ },
+ {
+  "page": 2,
+  "y": 611,
+  "items": [
+   {
+    "x": 44,
+    "text": "Descuento fidelidad 39,01 Eur x -10 %"
+   },
+   {
+    "x": 274,
+    "text": "-3,90 €"
+   }
+  ],
+  "text": "Descuento fidelidad 39,01 Eur x -10 % -3,90 €"
+ },
+ {
+  "page": 2,
+  "y": 601,
+  "items": [
+   {
+    "x": 44,
+    "text": "Descuento Promocional 39,01 Eur x -10 % DTO"
+   },
+   {
+    "x": 274,
+    "text": "-3,90 €"
+   }
+  ],
+  "text": "Descuento Promocional 39,01 Eur x -10 % DTO -3,90 €"
+ },
+ {
+  "page": 2,
+  "y": 582,
+  "items": [
+   {
+    "x": 44,
+    "text": "Financiación Bono Social 30 días x 0,024688 Eur/día"
+   },
+   {
+    "x": 277,
+    "text": "0,74 €"
+   }
+  ],
+  "text": "Financiación Bono Social 30 días x 0,024688 Eur/día 0,74 €"
+ },
+ {
+  "page": 2,
+  "y": 574,
+  "items": [
+   {
+    "x": 44,
+    "text": "Alquiler del contador ( 25 días x 0,026630 Eur/día )"
+   },
+   {
+    "x": 277,
+    "text": "0,67 €"
+   }
+  ],
+  "text": "Alquiler del contador ( 25 días x 0,026630 Eur/día ) 0,67 €"
+ },
+ {
+  "page": 2,
+  "y": 566,
+  "items": [
+   {
+    "x": 44,
+    "text": "Alquiler del contador ( 5 días x 0,026630 Eur/día )"
+   },
+   {
+    "x": 277,
+    "text": "0,13 €"
+   }
+  ],
+  "text": "Alquiler del contador ( 5 días x 0,026630 Eur/día ) 0,13 €"
+ },
+ {
+  "page": 2,
+  "y": 547,
+  "items": [
+   {
+    "x": 44,
+    "text": "Impuesto electricidad ( 66,16 Eur X 5,1126963 %)"
+   },
+   {
+    "x": 277,
+    "text": "3,38 €"
+   }
+  ],
+  "text": "Impuesto electricidad ( 66,16 Eur X 5,1126963 %) 3,38 €"
+ },
+ {
+  "page": 2,
+  "y": 539,
+  "items": [
+   {
+    "x": 44,
+    "text": "IGIC reducido 0 %"
+   },
+   {
+    "x": 109,
+    "text": "s/ 0,74"
+   },
+   {
+    "x": 277,
+    "text": "0,00 €"
+   },
+   {
+    "x": 323,
+    "text": "Punta"
+   },
+   {
+    "x": 363,
+    "text": "18.216,128"
+   },
+   {
+    "x": 413,
+    "text": "18.273,356"
+   },
+   {
+    "x": 477,
+    "text": "1,00"
+   },
+   {
+    "x": 515,
+    "text": "0,000"
+   },
+   {
+    "x": 554,
+    "text": "57,229"
+   }
+  ],
+  "text": "IGIC reducido 0 % s/ 0,74 0,00 € Punta 18.216,128 18.273,356 1,00 0,000 57,229"
+ },
+ {
+  "page": 2,
+  "y": 530,
+  "items": [
+   {
+    "x": 44,
+    "text": "IGIC reducido 0%"
+   },
+   {
+    "x": 107,
+    "text": "s/ 68,80"
+   },
+   {
+    "x": 277,
+    "text": "0,00 €"
+   },
+   {
+    "x": 323,
+    "text": "Llano"
+   },
+   {
+    "x": 367,
+    "text": "3.513,957"
+   },
+   {
+    "x": 417,
+    "text": "3.563,320"
+   },
+   {
+    "x": 477,
+    "text": "1,00"
+   },
+   {
+    "x": 515,
+    "text": "0,000"
+   },
+   {
+    "x": 554,
+    "text": "49,365"
+   }
+  ],
+  "text": "IGIC reducido 0% s/ 68,80 0,00 € Llano 3.513,957 3.563,320 1,00 0,000 49,365"
+ },
+ {
+  "page": 2,
+  "y": 522,
+  "items": [
+   {
+    "x": 44,
+    "text": "IGIC normal 7 %"
+   },
+   {
+    "x": 104,
+    "text": "s/ 0,80"
+   },
+   {
+    "x": 277,
+    "text": "0,06 €"
+   },
+   {
+    "x": 323,
+    "text": "Valle"
+   },
+   {
+    "x": 367,
+    "text": "5.622,430"
+   },
+   {
+    "x": 417,
+    "text": "5.780,985"
+   },
+   {
+    "x": 477,
+    "text": "1,00"
+   },
+   {
+    "x": 515,
+    "text": "0,000"
+   },
+   {
+    "x": 550,
+    "text": "158,552"
+   }
+  ],
+  "text": "IGIC normal 7 % s/ 0,80 0,06 € Valle 5.622,430 5.780,985 1,00 0,000 158,552"
+ },
+ {
+  "page": 2,
+  "y": 512,
+  "items": [
+   {
+    "x": 40,
+    "text": "TOTAL"
+   },
+   {
+    "x": 280,
+    "text": "70,40 €"
+   }
+  ],
+  "text": "TOTAL 70,40 €"
+ },
+ {
+  "page": 2,
+  "y": 499,
+  "items": [
+   {
+    "x": 40,
+    "text": "PARA TI"
+   },
+   {
+    "x": 281,
+    "text": "-5,00 €"
+   }
+  ],
+  "text": "PARA TI -5,00 €"
+ },
+ {
+  "page": 2,
+  "y": 486,
+  "items": [
+   {
+    "x": 40,
+    "text": "TOTAL A PAGAR"
+   },
+   {
+    "x": 280,
+    "text": "65,40 €"
+   }
+  ],
+  "text": "TOTAL A PAGAR 65,40 €"
+ }
+]

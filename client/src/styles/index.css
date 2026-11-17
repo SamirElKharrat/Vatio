@@ -1,0 +1,311 @@
+@import 'tailwindcss';
+
+/* Tokens del diseño «App de consumo eléctrico» (pantalla 3a). */
+@theme {
+  --color-page: #eee7da;
+  --color-surface: #fbf7ef;
+  --color-surface-2: #f4eee3;
+  --color-ink: #26211b;
+  /* Tintas secundarias: la misma tinta cálida, rebajada. `ink-3` es el mínimo para texto pequeño
+     (4,5:1 sobre `surface`); `ink-4` queda para unidades, marcas y texto de relleno. */
+  --color-ink-2: rgb(38 33 27 / 0.8);
+  --color-ink-3: rgb(38 33 27 / 0.67);
+  --color-ink-4: rgb(38 33 27 / 0.54);
+  --color-line: rgb(38 33 27 / 0.1);
+  --color-line-strong: rgb(38 33 27 / 0.18);
+  --color-hover: rgb(38 33 27 / 0.045);
+  --color-accent: #c2410c;
+  --color-accent-hover: #a8370a;
+  --color-accent-ink: #8c2f09;
+  --color-accent-soft: rgb(194 65 12 / 0.08);
+  --color-accent-line: rgb(194 65 12 / 0.35);
+  --color-control: #ffffff;
+  --color-control-line: rgb(38 33 27 / 0.2);
+  --color-danger-soft: oklch(0.93 0.07 32);
+  --color-danger-ink: oklch(0.38 0.14 32);
+  --color-scrim: rgb(38 33 27 / 0.42);
+
+  /* Tramos horarios: banda superior y fondo suave de las filas */
+  --color-valle: oklch(0.93 0.03 148);
+  --color-llano: oklch(0.94 0.05 82);
+  --color-punta: oklch(0.89 0.075 38);
+  --color-valle-soft: oklch(0.975 0.012 148);
+  --color-llano-soft: oklch(0.98 0.022 82);
+  --color-punta-soft: oklch(0.955 0.04 38);
+
+  --color-punta-line: oklch(0.84 0.09 38);
+  --color-punta-ink: oklch(0.4 0.13 38);
+
+  /* Diferencia entre lo facturado y lo apuntado, y resultado del comparador */
+  --color-gap: oklch(0.95 0.035 70);
+  --color-gap-line: oklch(0.88 0.06 70);
+  --color-gap-ink: oklch(0.4 0.13 45);
+  --color-ok-soft: oklch(0.94 0.04 148);
+  --color-ok-ink: oklch(0.36 0.09 148);
+
+  /* Banda cuando el precio es el mismo a todas las horas */
+  --color-flat: oklch(0.92 0.045 45);
+
+  /* Escala de calor de Semana y Mes */
+  --color-heat-low: oklch(0.92 0.04 45);
+  --color-heat-mid: oklch(0.63 0.15 45);
+  --color-heat-high: oklch(0.5 0.15 45);
+  --color-heat-bar: oklch(0.69 0.13 52);
+
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius-swatch: 3px;
+  --radius-block: 7px;
+  --radius-chip: 9px;
+  --radius-control: 10px;
+  --radius-panel: 12px;
+  --radius-modal: 16px;
+  --radius-sheet: 26px;
+
+  /* Relieve: muy poco, lo justo para separar lo pulsable del papel */
+  --shadow-raised: 0 1px 0 rgb(38 33 27 / 0.04), 0 1px 2px rgb(38 33 27 / 0.06);
+  --shadow-lifted: 0 1px 0 rgb(38 33 27 / 0.05), 0 6px 16px -6px rgb(38 33 27 / 0.22);
+  --shadow-modal: 0 24px 60px -12px rgb(38 33 27 / 0.42), 0 2px 6px rgb(38 33 27 / 0.08);
+
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --animate-veil-in: veil-in 0.16s ease-out both;
+  --animate-dialog-in: dialog-in 0.2s var(--ease-out-soft) both;
+  --animate-sheet-in: sheet-in 0.26s var(--ease-out-soft) both;
+  --animate-rise-in: rise-in 0.24s var(--ease-out-soft) both;
+  --animate-breathe: breathe 1.2s ease-in-out infinite;
+
+  @keyframes veil-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.985);
+    }
+  }
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  @keyframes breathe {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: scaleY(0.55);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+  }
+}
+
+:root {
+  /* Alto de la barra de pestañas del móvil, sin el margen de seguridad del teléfono */
+  --tabbar: 58px;
+}
+
+@layer base {
+  body {
+    margin: 0;
+    background: var(--color-page);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* Las cifras ocupan todas lo mismo, también en la letra de palo: las columnas de números casan */
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: rgb(194 65 12 / 0.2);
+  }
+
+  button:not(:disabled),
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  /* Todo lo pulsable cambia con suavidad al pasar por encima, pulsar o recibir el foco */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role='button'] {
+    transition:
+      background-color 0.14s ease-out,
+      border-color 0.14s ease-out,
+      color 0.14s ease-out,
+      box-shadow 0.14s ease-out,
+      opacity 0.14s ease-out,
+      transform 0.14s ease-out;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* En los campos el contorno va pegado al borde, para que no baile la retícula */
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline-offset: -1px;
+  }
+
+  input[aria-invalid='true']:focus-visible {
+    outline-color: var(--color-danger-ink);
+  }
+
+  /* Sobre la tinta oscura el naranja pierde contraste: el contorno se aclara */
+  .on-ink :focus-visible {
+    outline-color: oklch(0.8 0.13 55);
+  }
+
+  input::placeholder {
+    color: var(--color-ink-4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Etiqueta de sección: mono pequeña en mayúsculas */
+  .label {
+    font: 500 10.5px/1.2 var(--font-mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+
+  /* Rayas de la pista de 24 horas: una cada dos horas, como la regla, y más marcada cada seis */
+  .hour-grid {
+    background-image:
+      repeating-linear-gradient(to right, rgb(38 33 27 / 0.1) 0 1px, transparent 1px 25%),
+      repeating-linear-gradient(to right, rgb(38 33 27 / 0.07) 0 1px, transparent 1px calc(100% / 12));
+  }
+
+  /* Opción de un grupo de radio: una ficha que se entinta al elegirla (`aria-checked`) */
+  .choice {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-control);
+    background: var(--color-control);
+    color: var(--color-ink);
+    font-size: 13px;
+    line-height: 1.1;
+  }
+
+  .choice:hover:not(:disabled) {
+    border-color: rgb(38 33 27 / 0.4);
+  }
+
+  .choice[aria-checked='true'] {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: #fff;
+  }
+
+  .choice:disabled {
+    opacity: 0.5;
+  }
+
+  /* Opción de un selector partido en dos o tres, sobre su carril gris */
+  .segment {
+    flex: 1;
+    min-height: 30px;
+    padding: 0 8px;
+    border-radius: var(--radius-block);
+    color: var(--color-ink-3);
+    font-size: 12.5px;
+    line-height: 1;
+  }
+
+  .segment:hover {
+    color: var(--color-ink);
+  }
+
+  .segment[aria-checked='true'] {
+    background: var(--color-control);
+    box-shadow: var(--shadow-raised);
+    color: var(--color-ink);
+    font-weight: 500;
+  }
+
+  @media (max-width: 639px) {
+    .choice {
+      min-height: 42px;
+      padding: 0 15px;
+      font-size: 14px;
+    }
+
+    .segment {
+      min-height: 38px;
+      font-size: 13.5px;
+    }
+  }
+
+  /* Titular de página */
+  .page-title {
+    font-size: 26px;
+    line-height: 1.15;
+    letter-spacing: -0.012em;
+    color: var(--color-ink);
+  }
+
+  /* Párrafo de ayuda bajo el titular */
+  .page-lead {
+    max-width: 62ch;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-ink-3);
+  }
+
+  @media (max-width: 639px) {
+    .page-title {
+      font-size: 24px;
+    }
+  }
+}
