@@ -8,7 +8,7 @@ export function BottomNav({ account }) {
   return (
     <nav
       aria-label="Secciones"
-      className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-surface/95 px-1.5 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-surface/95 px-1.5 pb-[env(safe-area-inset-bottom)] sm:hidden"
     >
       {items.map((item) => (
         <NavLink

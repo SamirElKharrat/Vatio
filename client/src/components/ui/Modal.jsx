@@ -5,7 +5,9 @@ export function Modal({ open, onClose, title, aside, swatch, width = 440, childr
   return (
     <Dialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 grid animate-veil-in place-items-center overflow-y-auto bg-scrim p-5 backdrop-blur-[2px] max-sm:place-items-end max-sm:p-0">
+        {/* Sin backdrop-filter: cuando Firefox pinta sin tarjeta gráfica, desenfocar el fondo en cada fotograma
+            (y con dos diálogos apilados, dos veces) deja la página a ~20 fps */}
+        <Dialog.Overlay className="fixed inset-0 z-50 grid animate-veil-in place-items-center overflow-y-auto bg-scrim p-5 max-sm:place-items-end max-sm:p-0">
           <Dialog.Content
             style={{ maxWidth: width }}
             // El diálogo recibe el foco al abrirse si no tiene campos; el contorno sólo va en sus controles
