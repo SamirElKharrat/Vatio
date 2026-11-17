@@ -63,6 +63,13 @@ export const quarter = (n) => Number.isInteger(Math.round(n * 4 * 1e6) / 1e6)
 export const dateSchema = z.iso.date()
 // Color de un aparato o consumo fijo, en hexadecimal (#rrggbb)
 export const colorSchema = z.string().regex(/^#[0-9a-f]{6}$/i, 'El color debe ir como #rrggbb').transform((c) => c.toLowerCase())
+/** Contraseña nueva de una cuenta, la ponga el administrador o su dueño */
+export const passwordSchema = z.string().min(8, 'La contraseña debe tener al menos 8 caracteres').max(200)
+/** Nombre con el que se muestra una cuenta; puede quedar vacío */
+export const nameSchema = z.string().trim().max(80, 'El nombre no puede pasar de 80 caracteres')
+/** Correo de una cuenta: sin espacios alrededor y en minúsculas, como se guarda */
+export const emailSchema = z.string().trim().toLowerCase().pipe(z.email('Escribe un correo válido'))
+
 export const wattsSchema = z.number().int().min(1).max(100000)
 
 /** Inicio y duración de un uso: en cuartos de hora y sin pasar de medianoche */

@@ -30,6 +30,7 @@ const queryClient = new QueryClient({
 const AparatosPage = lazy(() => import('./features/aparatos/AparatosPage').then((m) => ({ default: m.AparatosPage })))
 const FijosPage = lazy(() => import('./features/fijos/FijosPage').then((m) => ({ default: m.FijosPage })))
 const TarifaPage = lazy(() => import('./features/tarifa/TarifaPage').then((m) => ({ default: m.TarifaPage })))
+const ProfilePage = lazy(() => import('./features/account/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const AccountsPage = lazy(() => import('./features/accounts/AccountsPage').then((m) => ({ default: m.AccountsPage })))
 
 const onDemand = (page) => (
@@ -49,6 +50,7 @@ const router = createBrowserRouter([
       { path: 'fijos', element: onDemand(<FijosPage />) },
       { path: 'tarifa', element: onDemand(<TarifaPage />) },
       { path: 'cuentas', element: onDemand(<AccountsPage />) },
+      { path: 'cuenta', element: onDemand(<ProfilePage />) },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

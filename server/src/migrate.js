@@ -5,6 +5,7 @@ import * as initial from './migrations/001-initial.js'
 import * as invoiceDays from './migrations/002-invoice-days.js'
 import * as rowLevelSecurity from './migrations/003-row-level-security.js'
 import * as deviceColors from './migrations/004-device-colors.js'
+import * as userName from './migrations/005-user-name.js'
 
 // Las migraciones se importan a mano y en orden: así funcionan igual con node y en los tests.
 const migrations = [
@@ -12,6 +13,7 @@ const migrations = [
   { name: '002-invoice-days', ...invoiceDays },
   { name: '003-row-level-security', ...rowLevelSecurity },
   { name: '004-device-colors', ...deviceColors },
+  { name: '005-user-name', ...userName },
 ]
 
 export const migrator = new Umzug({

@@ -6,5 +6,8 @@ export const NAV = [
   { to: '/tarifa', label: 'Tarifa y factura', short: 'Tarifa', icon: 'tarifa' },
 ]
 
+/** La propia cuenta: se abre desde el nombre, junto a «Salir», no desde las pestañas */
+export const PROFILE_NAV = { to: '/cuenta', label: 'Mi cuenta', short: 'Mi cuenta', icon: 'cuentas' }
+
 /** Sólo la ve el administrador */
 export const ADMIN_NAV = { to: '/cuentas', label: 'Cuentas', short: 'Cuentas', icon: 'cuentas' }

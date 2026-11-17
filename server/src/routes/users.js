@@ -4,17 +4,17 @@ import { z } from 'zod'
 import { currentUser, hashPassword, publicUser } from '../auth.js'
 import { sequelize } from '../db.js'
 import { createEmptyHousehold } from '../household.js'
-import { HttpError, idParam, parse } from '../http.js'
+import { emailSchema, HttpError, idParam, nameSchema, parse, passwordSchema } from '../http.js'
 import { User } from '../models.js'
 
 /** Gestión de cuentas. Sólo para el administrador; no da acceso a los datos de las demás cuentas. */
 export const usersRouter = Router()
 
-const passwordSchema = z.string().min(8, 'La contraseña debe tener al menos 8 caracteres').max(200)
 const roleSchema = z.enum(['admin', 'user'])
 
 const createSchema = z.object({
-  email: z.email('Escribe un correo válido'),
+  email: emailSchema,
+  name: nameSchema.default(''),
   password: passwordSchema,
   role: roleSchema.default('user'),
 })
@@ -30,13 +30,13 @@ usersRouter.get('/', async (_req, res) => {
 
 usersRouter.post('/', async (req, res) => {
   const data = parse(createSchema, req.body)
-  const email = data.email.trim().toLowerCase()
+  const { email, name } = data
   if (await User.findOne({ where: { email } })) throw new HttpError(409, 'Ya existe una cuenta con ese correo')
 
   const passwordHash = await hashPassword(data.password)
   const user = await sequelize
     .transaction(async (transaction) => {
-      const created = await User.create({ email, passwordHash, role: data.role }, { transaction })
+      const created = await User.create({ email, name, passwordHash, role: data.role }, { transaction })
       await createEmptyHousehold(created.id, transaction)
       return created
     })

@@ -7,8 +7,8 @@ import { dayTitle, shiftMonth, todayISO, weekNumber } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { consumoPath, useSelectedDate } from '../../lib/useSelectedDate'
 import { SegmentedLinks } from '../ui/Segmented'
-import { Brand, Chevron } from './marks'
-import { ADMIN_NAV, NAV } from './nav'
+import { Brand, Chevron, NavIcon } from './marks'
+import { ADMIN_NAV, NAV, PROFILE_NAV } from './nav'
 
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 const STEP_CLASS =
@@ -31,7 +31,7 @@ export function TopBar() {
   const week = datesBetween(monday, addDays(monday, 6))
   const { home } = useHousehold(week[0], week[6])
 
-  const title = [...NAV, ADMIN_NAV].find((item) => pathname.startsWith(item.to))?.label
+  const title = [...NAV, ADMIN_NAV, PROFILE_NAV].find((item) => pathname.startsWith(item.to))?.label
   const isConsumo = pathname.startsWith('/consumo')
   const totals = home ? periodSummary(home, week) : null
 
@@ -48,13 +48,23 @@ export function TopBar() {
     <header className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-line bg-surface-2 px-8 py-3.5 max-lg:px-6 max-sm:px-4 max-sm:py-3">
       <div className="flex w-full items-center justify-between sm:hidden">
         <Brand />
-        <button
-          type="button"
-          onClick={() => logout.mutate(undefined, { onSuccess: () => navigate('/login') })}
-          className="grid min-h-9 place-items-center rounded-block border border-line-strong px-3 text-[12.5px] text-ink-2 hover:bg-control"
-        >
-          Salir
-        </button>
+        <div className="flex gap-2">
+          <Link
+            to={PROFILE_NAV.to}
+            aria-label={PROFILE_NAV.label}
+            title={PROFILE_NAV.label}
+            className="grid size-9 place-items-center rounded-block border border-line-strong text-ink-2 hover:bg-control"
+          >
+            <NavIcon name={PROFILE_NAV.icon} className="size-[18px]" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => logout.mutate(undefined, { onSuccess: () => navigate('/login') })}
+            className="grid min-h-9 place-items-center rounded-block border border-line-strong px-3 text-[12.5px] text-ink-2 hover:bg-control"
+          >
+            Salir
+          </button>
+        </div>
       </div>
 
       <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-2 ${mobileOnlyConsumo}`}>

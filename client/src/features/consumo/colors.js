@@ -1,15 +1,19 @@
 import { luminance } from '../../lib/palette'
 
-// El color de cada aparato es un #rrggbb; los demás se derivan de él
+// El color de cada aparato es un #rrggbb; los demás se derivan de él.
+// Si llega algo que no lo es (por ejemplo, de un servidor sin actualizar), se pinta en gris en vez de romper la página.
+const FALLBACK = '#8a8178'
+const safe = (color) => (typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color) ? color : FALLBACK)
 
-export const deviceColor = (color) => color
+export const deviceColor = (color) => safe(color)
 /** Versión translúcida, para las rutinas */
-export const deviceColorSoft = (color) => `${color}73`
-export const deviceBorder = (color) => `color-mix(in oklab, ${color} 82%, black)`
+export const deviceColorSoft = (color) => `${safe(color)}73`
+export const deviceBorder = (color) => `color-mix(in oklab, ${safe(color)} 82%, black)`
 /** Tinta del mismo color, para escribir sobre el color suave de las rutinas */
-export const deviceInk = (color) => `color-mix(in oklab, ${color} 42%, black)`
+export const deviceInk = (color) => `color-mix(in oklab, ${safe(color)} 42%, black)`
 /** Texto legible sobre el color sólido: blanco, salvo en los colores claros, donde va una tinta oscura del mismo color */
-export const deviceText = (color) => (luminance(color) > 0.3 ? `color-mix(in oklab, ${color} 32%, black)` : 'white')
+export const deviceText = (color) =>
+  luminance(safe(color)) > 0.3 ? `color-mix(in oklab, ${safe(color)} 32%, black)` : 'white'
 
 export const BAND_NAME = { valle: 'Valle', llano: 'Llano', punta: 'Punta' }
 export const BAND_BG = { valle: 'bg-valle', llano: 'bg-llano', punta: 'bg-punta' }

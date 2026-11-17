@@ -1,7 +1,9 @@
 import { Router } from 'express'
+import { UniqueConstraintError } from 'sequelize'
 import { z } from 'zod'
 import { checkPassword, currentUser, hashPassword, publicUser, requireAuth } from '../auth.js'
-import { HttpError, parse } from '../http.js'
+import { sequelize } from '../db.js'
+import { emailSchema, HttpError, nameSchema, parse, passwordSchema } from '../http.js'
 import { User } from '../models.js'
 
 export const authRouter = Router()
@@ -64,4 +66,66 @@ authRouter.post('/logout', async (req, res) => {
 
 authRouter.get('/me', requireAuth, (_req, res) => {
   res.json({ user: publicUser(currentUser(res)) })
+})
+
+// La propia cuenta: cada uno cambia su nombre, su correo y su contraseña
+
+const profileSchema = z.object({
+  name: nameSchema.optional(),
+  email: emailSchema.optional(),
+  currentPassword: z.string().optional(),
+})
+
+const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, 'Escribe tu contraseña actual'),
+  newPassword: passwordSchema,
+})
+
+/** Comprueba la contraseña actual antes de un cambio delicado. Los fallos cuentan para el freno del login. */
+async function verifyCurrentPassword(user, password) {
+  assertNotLocked(user.email)
+  if (!password || !(await checkPassword(password, user.passwordHash))) {
+    recordFailure(user.email)
+    // 400 y no 401: la sesión sigue siendo buena, sólo falla la comprobación
+    throw new HttpError(400, 'La contraseña actual no es correcta')
+  }
+}
+
+const emailTaken = () => new HttpError(409, 'Ya existe una cuenta con ese correo')
+
+authRouter.patch('/me', requireAuth, async (req, res) => {
+  const data = parse(profileSchema, req.body)
+  const user = currentUser(res)
+
+  // Cambiar el correo cambia con qué se entra: se pide la contraseña, como para cambiar ésta
+  if (data.email !== undefined && data.email !== user.email) {
+    await verifyCurrentPassword(user, data.currentPassword)
+    if (await User.findOne({ where: { email: data.email } })) throw emailTaken()
+    user.email = data.email
+  }
+  if (data.name !== undefined) user.name = data.name
+
+  await user.save().catch((error) => {
+    // Otra cuenta se ha quedado ese correo justo a la vez
+    if (error instanceof UniqueConstraintError) throw emailTaken()
+    throw error
+  })
+  res.json({ user: publicUser(user) })
+})
+
+authRouter.put('/password', requireAuth, async (req, res) => {
+  const data = parse(passwordChangeSchema, req.body)
+  const user = currentUser(res)
+  await verifyCurrentPassword(user, data.currentPassword)
+  if (data.newPassword === data.currentPassword) {
+    throw new HttpError(400, 'La contraseña nueva es igual a la actual')
+  }
+
+  user.passwordHash = await hashPassword(data.newPassword)
+  await user.save()
+  // Las demás sesiones abiertas con la contraseña anterior dejan de valer; ésta se conserva
+  await sequelize.query(`DELETE FROM session WHERE sess->>'userId' = :userId AND sid <> :sid`, {
+    replacements: { userId: user.id, sid: req.sessionID },
+  })
+  res.status(204).end()
 })

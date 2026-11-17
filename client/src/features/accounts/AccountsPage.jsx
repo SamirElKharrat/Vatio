@@ -13,6 +13,7 @@ const PASSWORD_HINT = 'Al menos 8 caracteres'
 
 function NewAccountForm() {
   const create = useCreateAccount()
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState('user')
@@ -20,9 +21,10 @@ function NewAccountForm() {
   function submit(event) {
     event.preventDefault()
     create.mutate(
-      { email, password, role },
+      { name, email, password, role },
       {
         onSuccess: () => {
+          setName('')
           setEmail('')
           setPassword('')
           setRole('user')
@@ -34,6 +36,14 @@ function NewAccountForm() {
   return (
     <form onSubmit={submit} className="flex flex-col gap-4 rounded-panel bg-surface-2 p-5">
       <div className="label">Nueva cuenta</div>
+      <Field
+        label="Nombre"
+        autoComplete="off"
+        maxLength={80}
+        hint="Opcional; su dueño puede cambiarlo después"
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+      />
       <Field
         label="Correo"
         type="email"
@@ -128,9 +138,10 @@ function AccountRow({ account, isSelf, onPassword }) {
     <li className="flex flex-wrap items-center gap-x-4 gap-y-2.5 border-t border-line py-3.5">
       <div className="min-w-0 flex-1 basis-52">
         <div className={`truncate text-[14.5px] ${account.active ? 'text-ink' : 'text-ink-3 line-through'}`}>
-          {account.email}
+          {account.name || account.email}
         </div>
         <div className="mt-1 font-mono text-[12px] text-ink-3">
+          {account.name && `${account.email} · `}
           {ROLE_LABEL[account.role]} · alta {shortDate(account.createdAt.slice(0, 10))}
           {isSelf && ' · tu cuenta'}
         </div>

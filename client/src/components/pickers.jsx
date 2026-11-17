@@ -66,7 +66,7 @@ const SWATCH_ON = 'outline-2 outline-ink'
 export function ColorPicker({ value, onChange }) {
   const [open, setOpen] = useState(false)
   // El color actual va siempre el primero, aunque venga de la paleta grande
-  const quick = [value, ...PRESETS.filter((color) => color !== value)].slice(0, 7)
+  const quick = [value, ...PRESETS.filter((color) => color !== value)].filter(Boolean).slice(0, 7)
   return (
     <>
       <div className="flex items-center gap-2.5 max-sm:grid max-sm:grid-cols-8 max-sm:gap-2" role="radiogroup" aria-label="Color">

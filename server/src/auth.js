@@ -48,6 +48,7 @@ export const currentUser = (res) => res.locals.user
 export const publicUser = (user) => ({
   id: user.id,
   email: user.email,
+  name: user.name,
   role: user.role,
   active: user.active,
   createdAt: user.createdAt,

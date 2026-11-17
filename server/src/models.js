@@ -11,6 +11,7 @@ User.init(
   {
     id,
     email: { type: DataTypes.TEXT, allowNull: false, unique: true },
+    name: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' },
     passwordHash: { type: DataTypes.TEXT, allowNull: false },
     role: { type: DataTypes.TEXT, allowNull: false, defaultValue: 'user' },
     active: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },

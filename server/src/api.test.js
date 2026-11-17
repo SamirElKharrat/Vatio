@@ -438,6 +438,58 @@ describe('gestión de cuentas', () => {
   })
 })
 
+describe('tu cuenta', () => {
+  it('cambia su nombre sin pedir la contraseña y lo devuelve al entrar', async () => {
+    await createAccount('marta@test.local', 'user')
+    const marta = await loginAs('marta@test.local')
+    expect((await marta.get('/api/auth/me')).body.user.name).toBe('')
+
+    const res = await marta.patch('/api/auth/me').send({ name: '  Marta Ruiz  ' })
+    expect(res.status).toBe(200)
+    expect(res.body.user.name).toBe('Marta Ruiz')
+    expect((await marta.get('/api/auth/me')).body.user.name).toBe('Marta Ruiz')
+    expect((await marta.patch('/api/auth/me').send({ name: 'x'.repeat(81) })).status).toBe(400)
+  })
+
+  it('para cambiar el correo pide la contraseña actual y no deja uno ya usado', async () => {
+    const marta = await loginAs('marta@test.local')
+    const sinClave = await marta.patch('/api/auth/me').send({ email: 'marta2@test.local' })
+    expect(sinClave.status).toBe(400)
+    expect(sinClave.body.error).toBe('La contraseña actual no es correcta')
+    expect((await marta.patch('/api/auth/me').send({ email: 'marta2@test.local', currentPassword: 'mala' })).status).toBe(400)
+    expect((await marta.patch('/api/auth/me').send({ email: 'ana@test.local', currentPassword: PASSWORD })).status).toBe(409)
+    expect((await marta.patch('/api/auth/me').send({ email: 'no-es-correo', currentPassword: PASSWORD })).status).toBe(400)
+
+    const res = await marta.patch('/api/auth/me').send({ email: ' Marta2@Test.local ', currentPassword: PASSWORD })
+    expect(res.status).toBe(200)
+    expect(res.body.user.email).toBe('marta2@test.local')
+    // Desde ahora entra con el correo nuevo y no con el anterior
+    expect((await request(app).post('/api/auth/login').send({ email: 'marta@test.local', password: PASSWORD })).status).toBe(401)
+    expect((await request(app).post('/api/auth/login').send({ email: 'marta2@test.local', password: PASSWORD })).status).toBe(200)
+  })
+
+  it('cambia su contraseña con la actual y cierra sus otras sesiones, no ésta', async () => {
+    const marta = request.agent(app)
+    await marta.post('/api/auth/login').send({ email: 'marta2@test.local', password: PASSWORD })
+    const otra = request.agent(app)
+    await otra.post('/api/auth/login').send({ email: 'marta2@test.local', password: PASSWORD })
+
+    expect((await marta.put('/api/auth/password').send({ currentPassword: 'mala', newPassword: 'nueva-clave-1' })).status).toBe(400)
+    expect((await marta.put('/api/auth/password').send({ currentPassword: PASSWORD, newPassword: 'corta' })).status).toBe(400)
+    expect((await marta.put('/api/auth/password').send({ currentPassword: PASSWORD, newPassword: PASSWORD })).status).toBe(400)
+
+    expect((await marta.put('/api/auth/password').send({ currentPassword: PASSWORD, newPassword: 'nueva-clave-1' })).status).toBe(204)
+    expect((await marta.get('/api/auth/me')).status).toBe(200)
+    expect((await otra.get('/api/auth/me')).status).toBe(401)
+    expect((await request(app).post('/api/auth/login').send({ email: 'marta2@test.local', password: 'nueva-clave-1' })).status).toBe(200)
+  })
+
+  it('sin sesión no deja cambiar nada', async () => {
+    expect((await request(app).patch('/api/auth/me').send({ name: 'x' })).status).toBe(401)
+    expect((await request(app).put('/api/auth/password').send({ currentPassword: 'a', newPassword: 'bbbbbbbb' })).status).toBe(401)
+  })
+})
+
 describe('errores', () => {
   it('responde 404 en rutas e identificadores que no existen', async () => {
     expect((await ana.get('/api/nada')).status).toBe(404)

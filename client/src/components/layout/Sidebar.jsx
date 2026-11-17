@@ -6,7 +6,7 @@ import { estimateInvoice, oneOffFees } from '../../domain/invoice'
 import { datesBetween } from '../../domain/time'
 import { monthRange, todayISO } from '../../lib/dates'
 import { Brand, NavIcon } from './marks'
-import { ADMIN_NAV, NAV } from './nav'
+import { ADMIN_NAV, NAV, PROFILE_NAV } from './nav'
 
 function NavItem({ to, label, icon }) {
   return (
@@ -74,9 +74,14 @@ export function Sidebar({ account }) {
           <Brand tone="white" />
           <div className="mt-2 font-mono text-[11px] text-white/55">casa · peaje 2.0TD</div>
         </div>
-        <button type="button" onClick={signOut} className={`${signOutClass} lg:hidden`}>
-          Salir
-        </button>
+        <div className="flex gap-2 lg:hidden">
+          <NavLink to={PROFILE_NAV.to} className={signOutClass}>
+            {PROFILE_NAV.label}
+          </NavLink>
+          <button type="button" onClick={signOut} className={signOutClass}>
+            Salir
+          </button>
+        </div>
       </div>
 
       <nav aria-label="Secciones" className="flex flex-col max-lg:flex-row max-lg:overflow-x-auto">
@@ -88,9 +93,17 @@ export function Sidebar({ account }) {
       <div className="mt-auto flex flex-col gap-4 px-[22px] pt-6 max-lg:hidden">
         <MonthCard />
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate font-mono text-[11px] text-white/60" title={account.email}>
-            {account.email}
-          </span>
+          {/* El nombre (o el correo si no tiene) lleva a la propia cuenta */}
+          <NavLink
+            to={PROFILE_NAV.to}
+            title={`${PROFILE_NAV.label} · ${account.email}`}
+            className={({ isActive }) =>
+              `-mx-1.5 min-w-0 rounded-block px-1.5 py-1 hover:bg-white/6 ${isActive ? 'bg-white/8 text-white' : 'text-white/70 hover:text-white'}`
+            }
+          >
+            <span className="block truncate text-[12.5px]">{account.name || PROFILE_NAV.label}</span>
+            <span className="block truncate font-mono text-[10.5px] text-white/50">{account.email}</span>
+          </NavLink>
           <button type="button" onClick={signOut} className={signOutClass}>
             Salir
           </button>

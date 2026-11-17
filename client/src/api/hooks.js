@@ -55,6 +55,27 @@ export function useLogout() {
   })
 }
 
+/** Cambiar el nombre o el correo de la propia cuenta; para el correo hace falta `currentPassword` */
+export function useUpdateProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (changes) => api('/auth/me', { method: 'PATCH', body: changes }),
+    onSuccess: ({ user }) => {
+      queryClient.setQueryData(keys.me, user)
+      // El administrador ve su cuenta también en la lista de cuentas
+      queryClient.invalidateQueries({ queryKey: keys.users })
+    },
+  })
+}
+
+/** Cambiar la contraseña de la propia cuenta; las demás sesiones abiertas se cierran */
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: ({ currentPassword, newPassword }) =>
+      api('/auth/password', { method: 'PUT', body: { currentPassword, newPassword } }),
+  })
+}
+
 // Datos de la casa
 
 const useDevices = () =>
