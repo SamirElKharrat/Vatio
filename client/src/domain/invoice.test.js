@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { disa, endesa, endesaContract, endesaKwhByBand } from './fixtures/invoices'
-import { computeInvoice, estimateInvoice, oneOffFees } from './invoice'
+import { computeInvoice, estimateInvoice, manualDiscounts, oneOffFees } from './invoice'
 import { roundCents } from './money'
 
 describe('roundCents', () => {
@@ -133,5 +133,27 @@ describe('estimación a partir del contrato', () => {
       discounts: [1.17, 3.9, 3.9].map((amount, i) => ({ label: `Descuento ${i + 1}`, type: 'amount', amount })),
     }
     expect(estimateInvoice(contract, 30, endesaKwhByBand).total).toBe(70.4)
+  })
+})
+
+describe('descuentos apuntados a mano en un mes', () => {
+  const entries = [
+    { label: 'Cupón', type: 'amount', value: 5, source: 'manual' },
+    { label: 'Promo', type: 'percent', value: 10, source: 'manual' },
+    { label: 'De la factura', type: 'amount', value: 3, source: 'factura' },
+  ]
+
+  it('sólo cuentan los apuntados a mano, con la forma de los del contrato', () => {
+    expect(manualDiscounts(entries)).toEqual([
+      { label: 'Cupón', type: 'amount', amount: 5 },
+      { label: 'Promo', type: 'percent', pct: 10 },
+    ])
+  })
+
+  it('bajan la estimación como un descuento más del contrato', () => {
+    const base = estimateInvoice(endesaContract, 30, endesaKwhByBand)
+    const withCoupon = estimateInvoice(endesaContract, 30, endesaKwhByBand, [], manualDiscounts(entries.slice(0, 1)))
+    expect(withCoupon.discounts.total).toBeCloseTo(base.discounts.total + 5, 2)
+    expect(withCoupon.total).toBeLessThan(base.total)
   })
 })

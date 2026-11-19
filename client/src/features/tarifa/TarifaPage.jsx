@@ -1,10 +1,10 @@
 import { errorMessage } from '../../api/client'
-import { useHousehold, useInvoices } from '../../api/hooks'
+import { useDiscounts, useHousehold, useInvoices } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
 import { ErrorNotice, EstimateNote, Loading } from '../../components/ui/Notice'
 import { periodSummary } from '../../domain/aggregates'
 import { eur, kwh } from '../../domain/format'
-import { estimateInvoice } from '../../domain/invoice'
+import { estimateInvoice, manualDiscounts } from '../../domain/invoice'
 import { datesBetween } from '../../domain/time'
 import { monthRange, monthTitle, rangeLabel, todayISO } from '../../lib/dates'
 import { ContractSection } from './ContractSection'
@@ -17,7 +17,9 @@ function Estimate({ home, invoices }) {
   const { from, to } = monthRange(today)
   const dates = datesBetween(from, to)
   const month = periodSummary(home, dates)
-  const invoice = estimateInvoice(home.contract, dates.length, month.byBand)
+  // Los descuentos apuntados a mano este mes bajan su estimación
+  const extraDiscounts = manualDiscounts(useDiscounts(from, from).data ?? [])
+  const invoice = estimateInvoice(home.contract, dates.length, month.byBand, [], extraDiscounts)
   const rest = invoice.fees.total + invoice.electricityTax.amount + invoice.taxTotal
 
   // Para comparar ofertas vale lo apuntado este mes y, mejor aún, lo que midió el contador en una factura
@@ -71,6 +73,7 @@ function Estimate({ home, invoices }) {
         <p className="border-t border-white/12 pt-3 text-[12px] leading-normal text-white/60">
           {home.contract.mode === 'fija' ? 'Precio fijo' : 'Por tramos 2.0TD'} · incluye consumos fijos y rutinas de todo
           el mes
+          {extraDiscounts.length > 0 && ` y ${extraDiscounts.length === 1 ? '1 descuento apuntado' : `${extraDiscounts.length} descuentos apuntados`} en Descuentos`}
         </p>
       </div>
       <OfferCompare contract={home.contract} bases={bases} />

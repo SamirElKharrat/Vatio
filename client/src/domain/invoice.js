@@ -92,10 +92,25 @@ export function estimateInvoice(
   days,
   kwhByBand,
   extraFees = [],
+  /** Descuentos de ese mes apuntados a mano, además de los del contrato */
+  extraDiscounts = [],
 ) {
   const input = invoiceInputFor(contract, days, kwhByBand)
-  return computeInvoice({ ...input, fees: [...input.fees, ...extraFees] })
+  return computeInvoice({ ...input, fees: [...input.fees, ...extraFees], discounts: [...input.discounts, ...extraDiscounts] })
 }
+
+/**
+ * Los descuentos apuntados a mano en Descuentos, con la forma de los del contrato, para sumarlos a la
+ * estimación de su mes. Los que vienen de una factura no: esa factura ya está cerrada.
+ */
+export const manualDiscounts = (entries) =>
+  entries
+    .filter((entry) => entry.source === 'manual')
+    .map((entry) =>
+      entry.type === 'percent'
+        ? { label: entry.label, type: 'percent', pct: entry.value }
+        : { label: entry.label, type: 'amount', amount: entry.value },
+    )
 
 /** Los cargos de una factura que no se repiten: se cobran esa vez y no salen del contrato */
 export function oneOffFees(invoice) {

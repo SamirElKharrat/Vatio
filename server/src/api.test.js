@@ -365,6 +365,64 @@ describe('lectura del PDF de una factura', () => {
   })
 })
 
+describe('descuentos por mes', () => {
+  const NOV = '2026-11-01'
+
+  it('apunta, cambia y borra un descuento a mano, y otra cuenta no lo ve', async () => {
+    const created = await ana.post('/api/discounts').send({ month: NOV, label: 'Promoción', type: 'amount', value: 5 })
+    expect(created.status).toBe(201)
+    expect(created.body.discount).toMatchObject({ month: NOV, label: 'Promoción', type: 'amount', value: 5, source: 'manual', note: '' })
+    const id = created.body.discount.id
+
+    const changed = await ana.patch(`/api/discounts/${id}`).send({ value: 7.5, note: 'cupón' })
+    expect(changed.body.discount).toMatchObject({ value: 7.5, note: 'cupón', label: 'Promoción' })
+
+    expect((await ana.get(`/api/discounts?from=${NOV}&to=${NOV}`)).body.discounts.map((item) => item.id)).toContain(id)
+    expect((await luis.get(`/api/discounts?from=${NOV}&to=${NOV}`)).body.discounts).toHaveLength(0)
+    expect((await luis.patch(`/api/discounts/${id}`).send({ value: 1 })).status).toBe(404)
+
+    expect((await ana.delete(`/api/discounts/${id}`)).status).toBe(204)
+    expect((await ana.get(`/api/discounts?from=${NOV}&to=${NOV}`)).body.discounts.map((item) => item.id)).not.toContain(id)
+  })
+
+  it('rechaza un mes que no es día 1 y un porcentaje de más de 100', async () => {
+    expect((await ana.post('/api/discounts').send({ month: '2026-11-15', label: 'X', type: 'amount', value: 1 })).status).toBe(400)
+    expect((await ana.post('/api/discounts').send({ month: NOV, label: 'X', type: 'percent', value: 120 })).status).toBe(400)
+    const pct = await ana.post('/api/discounts').send({ month: NOV, label: 'X', type: 'percent', value: 10 })
+    expect((await ana.patch(`/api/discounts/${pct.body.discount.id}`).send({ value: 150 })).status).toBe(400)
+    await ana.delete(`/api/discounts/${pct.body.discount.id}`)
+  })
+
+  it('los de una factura se apuntan solos en su mes, no se tocan aparte y se van con ella', async () => {
+    const invoice = {
+      provider: 'endesa',
+      from: '2026-10-15',
+      to: '2026-11-05',
+      days: 22,
+      total: 56.7,
+      kwh: 199.992,
+      lines: [
+        { kind: 'energy', label: 'Energía', amount: 35.39 },
+        { kind: 'discount', label: 'Descuento Fidelidad', amount: -1.77 },
+      ],
+    }
+    const saved = await ana.post('/api/invoices').send(invoice)
+    const fromInvoice = (await ana.get(`/api/discounts?from=${NOV}&to=${NOV}`)).body.discounts.filter(
+      (item) => item.invoiceId === saved.body.invoice.id,
+    )
+    expect(fromInvoice).toEqual([expect.objectContaining({ label: 'Descuento Fidelidad', type: 'amount', value: 1.77, source: 'factura' })])
+
+    expect((await ana.delete(`/api/discounts/${fromInvoice[0].id}`)).status).toBe(409)
+
+    // Al editar la factura se rehacen; al borrarla desaparecen
+    await ana.put(`/api/invoices/${saved.body.invoice.id}`).send({ ...invoice, lines: [{ kind: 'discount', label: 'Otro', amount: -2 }] })
+    const after = (await ana.get(`/api/discounts?from=${NOV}&to=${NOV}`)).body.discounts.filter((item) => item.source === 'factura')
+    expect(after.map((item) => [item.label, item.value])).toEqual([['Otro', 2]])
+    await ana.delete(`/api/invoices/${saved.body.invoice.id}`)
+    expect((await ana.get(`/api/discounts?from=${NOV}&to=${NOV}`)).body.discounts.filter((item) => item.source === 'factura')).toHaveLength(0)
+  })
+})
+
 describe('consulta de usos por fechas', () => {
   it('rechaza un periodo al revés o de más de 400 días', async () => {
     expect((await ana.get('/api/usages?from=2026-09-01&to=2026-11-30')).status).toBe(200)

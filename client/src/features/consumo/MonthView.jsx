@@ -1,8 +1,9 @@
 import { Link } from 'react-router'
+import { useDiscounts } from '../../api/hooks'
 import { Stat, StatRow } from '../../components/ui/Stat'
 import { periodSummary } from '../../domain/aggregates'
 import { approxEur, eur, kwh } from '../../domain/format'
-import { estimateInvoice } from '../../domain/invoice'
+import { estimateInvoice, manualDiscounts } from '../../domain/invoice'
 import { datesBetween, weekdayOf } from '../../domain/time'
 import { dayTitle, monthRange, monthYearTitle, todayISO } from '../../lib/dates'
 import { consumoPath } from '../../lib/useSelectedDate'
@@ -24,6 +25,8 @@ const BAR_MAX_PX = 96
 export function MonthView({ home, date }) {
   const { from, to } = monthRange(date)
   const month = periodSummary(home, datesBetween(from, to))
+  // Los descuentos apuntados a mano en este mes bajan su estimación
+  const extraDiscounts = manualDiscounts(useDiscounts(from, from).data ?? [])
   const days = month.days
   const today = todayISO()
 
@@ -38,7 +41,7 @@ export function MonthView({ home, date }) {
   }))
   const weekMax = Math.max(0.001, ...weeks.map((week) => week.kwh))
 
-  const invoice = estimateInvoice(home.contract, days.length, month.byBand)
+  const invoice = estimateInvoice(home.contract, days.length, month.byBand, [], extraDiscounts)
   const energy = invoice.energy.total - invoice.discounts.total
   const rest = invoice.total - energy - invoice.power.total
   const hasFuture = to > today && from <= today
@@ -168,7 +171,18 @@ export function MonthView({ home, date }) {
               </div>
             ))}
           </dl>
-          <p className="mt-2 border-t border-line pt-3 text-[12px] leading-normal text-ink-3">Cámbialo en «Tarifa y factura».</p>
+          <p className="mt-2 border-t border-line pt-3 text-[12px] leading-normal text-ink-3">
+            {extraDiscounts.length > 0 && (
+              <>
+                Incluye {extraDiscounts.length === 1 ? '1 descuento apuntado' : `${extraDiscounts.length} descuentos apuntados`} en{' '}
+                <Link to="/descuentos" className="underline underline-offset-2 hover:text-ink">
+                  Descuentos
+                </Link>
+                .{' '}
+              </>
+            )}
+            Cámbialo en «Tarifa y factura».
+          </p>
         </div>
       </div>
     </div>

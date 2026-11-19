@@ -4,6 +4,7 @@ export const NAV = [
   { to: '/aparatos', label: 'Aparatos', short: 'Aparatos', icon: 'aparatos' },
   { to: '/fijos', label: 'Fijos y rutinas', short: 'Rutinas', icon: 'fijos' },
   { to: '/tarifa', label: 'Tarifa y factura', short: 'Tarifa', icon: 'tarifa' },
+  { to: '/descuentos', label: 'Descuentos', short: 'Descuentos', icon: 'descuentos' },
 ]
 
 /** La propia cuenta: se abre desde el nombre, junto a «Salir», no desde las pestañas */

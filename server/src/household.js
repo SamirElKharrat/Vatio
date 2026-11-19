@@ -100,6 +100,17 @@ export const invoiceJson = (invoice) => ({
     .map((line) => ({ kind: line.kind, label: line.label, amount: line.amount, taxPct: line.taxPct ?? null })),
 })
 
+export const discountJson = (entry) => ({
+  id: entry.id,
+  month: entry.month,
+  label: entry.label,
+  type: entry.type,
+  value: entry.value,
+  source: entry.source,
+  invoiceId: entry.invoiceId ?? null,
+  note: entry.note,
+})
+
 /** Días de un periodo contando los dos extremos */
 function daysBetween(from, to) {
   return Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000) + 1

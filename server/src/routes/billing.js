@@ -7,6 +7,7 @@ import { isValidDni, normalizeDni } from '../dni.js'
 import { contractJson, invoiceJson } from '../household.js'
 import { dateSchema, HttpError, idParam, parse } from '../http.js'
 import { parseInvoicePdf } from '../invoices/index.js'
+import { syncInvoiceDiscounts } from './discounts.js'
 import { Contract, Invoice, InvoiceLine } from '../models.js'
 
 const price = z.number().min(0).max(10)
@@ -181,6 +182,7 @@ invoicesRouter.post('/', async (req, res) => {
       data.lines.map((line, position) => ({ ...line, position, invoiceId: invoice.id })),
       { transaction },
     )
+    await syncInvoiceDiscounts(invoice, data.lines, transaction)
     return invoice.id
   })
   res.status(201).json({ invoice: invoiceJson(await ownInvoice(userId, id)) })
@@ -197,6 +199,7 @@ invoicesRouter.put('/:id', async (req, res) => {
       data.lines.map((line, position) => ({ ...line, position, invoiceId: invoice.id })),
       { transaction },
     )
+    await syncInvoiceDiscounts(invoice, data.lines, transaction)
   })
   res.json({ invoice: invoiceJson(await ownInvoice(userId, invoice.id)) })
 })

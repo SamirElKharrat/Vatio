@@ -8,6 +8,7 @@ import * as deviceColors from './migrations/004-device-colors.js'
 import * as userName from './migrations/005-user-name.js'
 import * as fixedLoadDevice from './migrations/006-fixed-load-device.js'
 import * as householdName from './migrations/007-household-name.js'
+import * as discountEntries from './migrations/008-discount-entries.js'
 
 // Las migraciones se importan a mano y en orden: así funcionan igual con node y en los tests.
 const migrations = [
@@ -18,6 +19,7 @@ const migrations = [
   { name: '005-user-name', ...userName },
   { name: '006-fixed-load-device', ...fixedLoadDevice },
   { name: '007-household-name', ...householdName },
+  { name: '008-discount-entries', ...discountEntries },
 ]
 
 export const migrator = new Umzug({

@@ -11,6 +11,7 @@ export const keys = {
   contract: ['contract'],
   usages: (from, to) => ['usages', from, to],
   invoices: ['invoices'],
+  discounts: (from, to) => ['discounts', from, to],
   users: ['users'],
 }
 
@@ -359,7 +360,11 @@ export const useInvoices = () =>
 
 export function useInvoiceCrud() {
   const queryClient = useQueryClient()
-  const refresh = () => queryClient.invalidateQueries({ queryKey: keys.invoices })
+  // Los descuentos de una factura se apuntan solos en Descuentos: cambian con ella
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: keys.invoices })
+    queryClient.invalidateQueries({ queryKey: DISCOUNTS_KEY })
+  }
   const create = useMutation({
     mutationFn: async (input) =>
       (await api('/invoices', { method: 'POST', body: input })).invoice,
@@ -406,8 +411,42 @@ export function useApplyParsedInvoice() {
       const { contract: _contract, warnings: _warnings, ...invoice } = parsed
       return (await api('/invoices', { method: 'POST', body: invoice })).invoice
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.invoices }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: keys.invoices })
+      queryClient.invalidateQueries({ queryKey: DISCOUNTS_KEY })
+    },
   })
+}
+
+// Descuentos por mes
+
+const DISCOUNTS_KEY = ['discounts']
+
+/** Descuentos de los meses entre `from` y `to`, escritos como su día 1 (2026-11-01) */
+export const useDiscounts = (from, to) =>
+  useQuery({
+    queryKey: keys.discounts(from, to),
+    queryFn: async () => (await api(`/discounts?from=${from}&to=${to}`)).discounts,
+    placeholderData: keepPreviousData,
+  })
+
+/** Apuntar, cambiar y borrar descuentos a mano; los de factura van con su factura */
+export function useDiscountCrud() {
+  const queryClient = useQueryClient()
+  const refresh = () => queryClient.invalidateQueries({ queryKey: DISCOUNTS_KEY })
+  const create = useMutation({
+    mutationFn: async (input) => (await api('/discounts', { method: 'POST', body: input })).discount,
+    onSuccess: refresh,
+  })
+  const save = useMutation({
+    mutationFn: async ({ id, changes }) => (await api(`/discounts/${id}`, { method: 'PATCH', body: changes })).discount,
+    onSuccess: refresh,
+  })
+  const remove = useMutation({
+    mutationFn: (id) => api(`/discounts/${id}`, { method: 'DELETE' }),
+    onSuccess: refresh,
+  })
+  return { create, save, remove }
 }
 
 // Cuentas (sólo administrador)

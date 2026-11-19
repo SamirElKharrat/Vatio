@@ -145,6 +145,24 @@ Invoice.init(
   { sequelize, tableName: 'invoices' },
 )
 
+/** Descuento de un mes: apuntado a mano o leído de una factura (entonces lleva `invoiceId`) */
+export class DiscountEntry extends Model {}
+DiscountEntry.init(
+  {
+    id,
+    userId,
+    month: { type: DataTypes.DATEONLY, allowNull: false },
+    label: { type: DataTypes.TEXT, allowNull: false },
+    type: { type: DataTypes.TEXT, allowNull: false },
+    value: { type: DataTypes.DOUBLE, allowNull: false },
+    source: { type: DataTypes.TEXT, allowNull: false },
+    invoiceId: { type: DataTypes.UUID, allowNull: true },
+    note: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' },
+    ...timestamps,
+  },
+  { sequelize, tableName: 'discount_entries' },
+)
+
 Routine.hasMany(RoutineSkip, { as: 'skips', foreignKey: 'routineId' })
 FixedLoad.belongsTo(Device, { as: 'device', foreignKey: 'deviceId' })
 Invoice.hasMany(InvoiceLine, { as: 'lines', foreignKey: 'invoiceId' })

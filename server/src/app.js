@@ -9,6 +9,7 @@ import { errorHandler, HttpError } from './http.js'
 import { authRouter } from './routes/auth.js'
 import { contractRouter, invoicesRouter } from './routes/billing.js'
 import { devicesRouter, fixedLoadsRouter } from './routes/catalog.js'
+import { discountsRouter } from './routes/discounts.js'
 import { routinesRouter } from './routes/routines.js'
 import { usagesRouter } from './routes/usages.js'
 import { usersRouter } from './routes/users.js'
@@ -40,6 +41,7 @@ app.use('/api/usages', requireAuth, usagesRouter)
 app.use('/api/routines', requireAuth, routinesRouter)
 app.use('/api/contract', requireAuth, contractRouter)
 app.use('/api/invoices', requireAuth, invoicesRouter)
+app.use('/api/discounts', requireAuth, discountsRouter)
 app.use('/api/users', requireAuth, requireAdmin, usersRouter)
 
 app.use('/api', () => {

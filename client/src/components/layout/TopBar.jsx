@@ -10,7 +10,6 @@ import { consumoPath, useSelectedDate } from '../../lib/useSelectedDate'
 import { ExportDialog } from '../../features/consumo/ExportDialog'
 import { Button } from '../ui/Button'
 import { SegmentedLinks } from '../ui/Segmented'
-import { AccountMenu } from './AccountMenu'
 import { HouseholdLine } from './HouseholdLine'
 import { Brand, Chevron, NavIcon } from './marks'
 import { ADMIN_NAV, NAV, PROFILE_NAV } from './nav'
@@ -136,7 +135,6 @@ export function TopBar() {
             <Chevron />
           </Link>
         )}
-        <AccountMenu />
       </div>
     </header>
   )

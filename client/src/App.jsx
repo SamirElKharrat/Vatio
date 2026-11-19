@@ -30,6 +30,9 @@ const queryClient = new QueryClient({
 const AparatosPage = lazy(() => import('./features/aparatos/AparatosPage').then((m) => ({ default: m.AparatosPage })))
 const FijosPage = lazy(() => import('./features/fijos/FijosPage').then((m) => ({ default: m.FijosPage })))
 const TarifaPage = lazy(() => import('./features/tarifa/TarifaPage').then((m) => ({ default: m.TarifaPage })))
+const DescuentosPage = lazy(() =>
+  import('./features/descuentos/DescuentosPage').then((m) => ({ default: m.DescuentosPage })),
+)
 const ProfilePage = lazy(() => import('./features/account/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const AccountsPage = lazy(() => import('./features/accounts/AccountsPage').then((m) => ({ default: m.AccountsPage })))
 
@@ -49,6 +52,7 @@ const router = createBrowserRouter([
       { path: 'aparatos', element: onDemand(<AparatosPage />) },
       { path: 'fijos', element: onDemand(<FijosPage />) },
       { path: 'tarifa', element: onDemand(<TarifaPage />) },
+      { path: 'descuentos', element: onDemand(<DescuentosPage />) },
       { path: 'cuentas', element: onDemand(<AccountsPage />) },
       { path: 'cuenta', element: onDemand(<ProfilePage />) },
       { path: '*', element: <Navigate to="/" replace /> },
