@@ -365,6 +365,14 @@ describe('lectura del PDF de una factura', () => {
   })
 })
 
+describe('consulta de usos por fechas', () => {
+  it('rechaza un periodo al revés o de más de 400 días', async () => {
+    expect((await ana.get('/api/usages?from=2026-09-01&to=2026-11-30')).status).toBe(200)
+    expect((await ana.get('/api/usages?from=2026-09-10&to=2026-09-01')).status).toBe(400)
+    expect((await ana.get('/api/usages?from=2025-01-01&to=2026-11-30')).status).toBe(400)
+  })
+})
+
 describe('consumos fijos a partir de un aparato', () => {
   it('cada fijo lleva el nombre, los vatios y el color de su aparato', async () => {
     const { fixedLoads } = (await ana.get('/api/fixed-loads')).body
@@ -551,6 +559,20 @@ describe('tu cuenta', () => {
     expect(res.body.user.name).toBe('Marta Ruiz')
     expect((await marta.get('/api/auth/me')).body.user.name).toBe('Marta Ruiz')
     expect((await marta.patch('/api/auth/me').send({ name: 'x'.repeat(81) })).status).toBe(400)
+  })
+
+  it('cambia el nombre de la casa, que empieza siendo «Casa» y no se puede dejar vacío', async () => {
+    const marta = await loginAs('marta@test.local')
+    expect((await marta.get('/api/auth/me')).body.user.householdName).toBe('Casa')
+
+    const res = await marta.patch('/api/auth/me').send({ householdName: '  Piso centro  ' })
+    expect(res.status).toBe(200)
+    expect(res.body.user.householdName).toBe('Piso centro')
+    expect((await marta.get('/api/auth/me')).body.user.householdName).toBe('Piso centro')
+    expect((await ana.get('/api/auth/me')).body.user.householdName).toBe('Casa')
+
+    expect((await marta.patch('/api/auth/me').send({ householdName: '   ' })).status).toBe(400)
+    expect((await marta.patch('/api/auth/me').send({ householdName: 'x'.repeat(81) })).status).toBe(400)
   })
 
   it('para cambiar el correo pide la contraseña actual y no deja uno ya usado', async () => {

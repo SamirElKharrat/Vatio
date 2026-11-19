@@ -68,10 +68,11 @@ authRouter.get('/me', requireAuth, (_req, res) => {
   res.json({ user: publicUser(currentUser(res)) })
 })
 
-// La propia cuenta: cada uno cambia su nombre, su correo y su contraseña
+// La propia cuenta: cada uno cambia su nombre, el de su casa, su correo y su contraseña
 
 const profileSchema = z.object({
   name: nameSchema.optional(),
+  householdName: z.string().trim().min(1, 'Ponle un nombre a la casa').max(80, 'El nombre de la casa no puede pasar de 80 caracteres').optional(),
   email: emailSchema.optional(),
   currentPassword: z.string().optional(),
 })
@@ -104,6 +105,7 @@ authRouter.patch('/me', requireAuth, async (req, res) => {
     user.email = data.email
   }
   if (data.name !== undefined) user.name = data.name
+  if (data.householdName !== undefined) user.householdName = data.householdName
 
   await user.save().catch((error) => {
     // Otra cuenta se ha quedado ese correo justo a la vez

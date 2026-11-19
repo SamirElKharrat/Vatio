@@ -159,7 +159,52 @@ function PasswordForm() {
   )
 }
 
-/** La propia cuenta: nombre, correo y contraseña */
+/** El nombre de la casa: sale bajo el nombre de la app, junto a la comercializadora */
+function HouseholdForm({ me }) {
+  const update = useUpdateProfile()
+  const [householdName, setHouseholdName] = useState(me.householdName)
+  const [saved, setSaved] = useState(false)
+  const changed = householdName.trim() !== me.householdName
+
+  function submit(event) {
+    event.preventDefault()
+    setSaved(false)
+    update.mutate(
+      { householdName },
+      {
+        onSuccess: ({ user }) => {
+          setHouseholdName(user.householdName)
+          setSaved(true)
+        },
+      },
+    )
+  }
+
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-4 rounded-panel bg-surface-2 p-5">
+      <div className="label">Tu casa</div>
+      <Field
+        label="Nombre de la casa"
+        maxLength={80}
+        required
+        placeholder="Casa, Piso centro, Apartamento playa…"
+        hint="Sale arriba, bajo el nombre de la app, junto a la comercializadora."
+        value={householdName}
+        onChange={(event) => {
+          setHouseholdName(event.target.value)
+          setSaved(false)
+        }}
+      />
+      {update.error && <ErrorNotice>{errorMessage(update.error)}</ErrorNotice>}
+      {saved && <Saved>Nombre de la casa guardado.</Saved>}
+      <Button type="submit" variant="primary" disabled={!changed || !householdName.trim() || update.isPending}>
+        {update.isPending ? 'Guardando…' : 'Guardar'}
+      </Button>
+    </form>
+  )
+}
+
+/** La propia cuenta: nombre, casa, correo y contraseña */
 export function ProfilePage() {
   const me = useOutletContext()
   return (
@@ -167,14 +212,17 @@ export function ProfilePage() {
       <div>
         <h2 className="page-title">Mi cuenta</h2>
         <p className="page-lead mt-2">
-          Cambia cómo te llamas en la app, el correo con el que entras y tu contraseña.
+          Cambia cómo te llamas en la app, el nombre de tu casa, el correo con el que entras y tu contraseña.
         </p>
         <p className="mt-2 font-mono text-[12px] text-ink-3">
           Cuenta {ROLE_LABEL[me.role]?.toLowerCase()} · alta {shortDate(me.createdAt.slice(0, 10))}
         </p>
       </div>
       <div className="grid items-start gap-x-8 gap-y-6 lg:grid-cols-2">
-        <ProfileForm me={me} />
+        <div className="flex flex-col gap-6">
+          <ProfileForm me={me} />
+          <HouseholdForm me={me} />
+        </div>
         <PasswordForm />
       </div>
     </div>

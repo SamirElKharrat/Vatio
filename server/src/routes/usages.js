@@ -11,7 +11,16 @@ export const usagesRouter = Router()
 const usageShape = { deviceId: z.uuid(), date: dateSchema, ...rangeShape }
 const createSchema = z.object(usageShape).refine(withinDay, withinDayMessage)
 const updateSchema = z.object(usageShape).partial()
-const listSchema = z.object({ from: dateSchema, to: dateSchema })
+// Tope de días por consulta: el periodo de una factura larga cabe; la descarga en CSV se queda en 3 meses
+const MAX_RANGE_DAYS = 400
+const DAY_MS = 24 * 60 * 60 * 1000
+const listSchema = z
+  .object({ from: dateSchema, to: dateSchema })
+  .refine(({ from, to }) => to >= from, { message: 'La fecha final no puede ser anterior a la inicial', path: ['to'] })
+  .refine(({ from, to }) => (Date.parse(to) - Date.parse(from)) / DAY_MS < MAX_RANGE_DAYS, {
+    message: `Como máximo ${MAX_RANGE_DAYS} días por consulta`,
+    path: ['to'],
+  })
 
 const EPS = 1e-9
 

@@ -49,6 +49,7 @@ export const publicUser = (user) => ({
   id: user.id,
   email: user.email,
   name: user.name,
+  householdName: user.householdName,
   role: user.role,
   active: user.active,
   createdAt: user.createdAt,

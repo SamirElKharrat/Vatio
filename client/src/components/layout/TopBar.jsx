@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useHousehold, useLogout } from '../../api/hooks'
 import { periodSummary } from '../../domain/aggregates'
@@ -6,7 +7,10 @@ import { addDays, datesBetween, startOfWeek } from '../../domain/time'
 import { dayTitle, shiftMonth, todayISO, weekNumber } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { consumoPath, useSelectedDate } from '../../lib/useSelectedDate'
+import { ExportDialog } from '../../features/consumo/ExportDialog'
+import { Button } from '../ui/Button'
 import { SegmentedLinks } from '../ui/Segmented'
+import { AccountMenu } from './AccountMenu'
 import { HouseholdLine } from './HouseholdLine'
 import { Brand, Chevron, NavIcon } from './marks'
 import { ADMIN_NAV, NAV, PROFILE_NAV } from './nav'
@@ -25,6 +29,7 @@ export function TopBar() {
   const { pathname } = useLocation()
   const { date, span } = useSelectedDate()
   const mobile = useIsMobile()
+  const [exporting, setExporting] = useState(false)
   const logout = useLogout()
   const navigate = useNavigate()
   const today = todayISO()
@@ -55,11 +60,11 @@ export function TopBar() {
         <div className="flex flex-none gap-2">
           <Link
             to={PROFILE_NAV.to}
-            aria-label={PROFILE_NAV.label}
             title={PROFILE_NAV.label}
-            className="grid size-9 place-items-center rounded-block border border-line-strong text-ink-2 hover:bg-control"
+            className="flex h-9 items-center gap-1.5 rounded-block border border-line-strong px-2.5 text-[12.5px] text-ink-2 hover:bg-control"
           >
-            <NavIcon name={PROFILE_NAV.icon} className="size-[18px]" />
+            <NavIcon name={PROFILE_NAV.icon} className="size-[17px]" />
+            Cuenta
           </Link>
           <button
             type="button"
@@ -92,6 +97,13 @@ export function TopBar() {
             ]}
           />
         )}
+        {isConsumo && (
+          // En el móvil no cabe aquí: va al pie de Consumo
+          <Button size="sm" className="max-sm:hidden" onClick={() => setExporting(true)}>
+            Descargar CSV
+          </Button>
+        )}
+        {exporting && <ExportDialog onClose={() => setExporting(false)} />}
       </div>
 
       <div className={`flex flex-wrap items-center gap-1.5 ${mobileOnlyConsumo}`}>
@@ -124,6 +136,7 @@ export function TopBar() {
             <Chevron />
           </Link>
         )}
+        <AccountMenu />
       </div>
     </header>
   )
