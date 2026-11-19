@@ -201,7 +201,6 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
         <button
           type="button"
           onClick={onAdd}
-          disabled={home.devices.length === 0}
           className="h-[54px] w-full rounded-[15px] bg-accent text-[15.5px] font-medium text-white shadow-[0_8px_20px_-4px_rgb(38_33_27/0.35)] active:translate-y-px active:bg-accent-hover disabled:opacity-50"
         >
           + Apuntar un uso

@@ -10,6 +10,7 @@ import { usageCost, usageKwh } from '../../domain/cost'
 import { eur, kwh } from '../../domain/format'
 import { bandAt, dayBands } from '../../domain/tariff'
 import { formatHM, parseRange, QUARTER } from '../../domain/time'
+import { DeviceEditor } from '../aparatos/DeviceEditor'
 import { firstFreeSlot, hasOverlap } from '../../domain/usages'
 import { dayTitle } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
@@ -83,8 +84,10 @@ function Stepper({ label, value, onLess, onMore }) {
 /**
  * Diálogo para apuntar un uso nuevo, cambiar las horas de uno apuntado o cambiar una rutina
  * sólo en unos días (`mode: 'routine'`, con la rutina y las fechas).
+ * `devices` son los que se pueden apuntar; `allDevices`, todos, para buscar el del uso y proponer
+ * un color libre al crear uno nuevo desde aquí.
  */
-export function UsageEditor({ target, date, devices, contract, dayUsages, onDelete, onClose }) {
+export function UsageEditor({ target, date, devices, allDevices = devices, contract, dayUsages, onDelete, onClose }) {
   const mobile = useIsMobile()
   const create = useCreateUsage()
   const update = useUpdateUsage()
@@ -99,8 +102,21 @@ export function UsageEditor({ target, date, devices, contract, dayUsages, onDele
     return formatHM(range.start + range.hours)
   })
   const [problem, setProblem] = useState('')
+  const [creatingDevice, setCreatingDevice] = useState(false)
 
   const serverError = create.error ?? update.error ?? override.error
+
+  // Alta de un aparato sin salir del diálogo; al guardarlo queda elegido
+  const deviceDialog = creatingDevice && (
+    <DeviceEditor
+      devices={allDevices}
+      onSaved={(device) => {
+        setDeviceId(device.id)
+        setProblem('')
+      }}
+      onClose={() => setCreatingDevice(false)}
+    />
+  )
   const message = problem || (serverError ? errorMessage(serverError) : '')
 
   function pickDevice(id) {
@@ -111,6 +127,7 @@ export function UsageEditor({ target, date, devices, contract, dayUsages, onDele
   function submit(event) {
     event.preventDefault()
     const range = parseRange(from, to)
+    if (!deviceId) return setProblem('Elige un aparato o crea uno con «+ Nuevo aparato»')
     if ('error' in range) return setProblem(RANGE_ERRORS[range.error])
     if (hasOverlap(dayUsages, deviceId, range.start, range.hours, target.usage?.id)) {
       return setProblem('Ya hay un uso de este aparato en esa franja')
@@ -171,7 +188,7 @@ export function UsageEditor({ target, date, devices, contract, dayUsages, onDele
     const range = parseRange(from, to)
     const start = 'error' in range ? 0 : range.start
     const hours = 'error' in range ? 1 : range.hours
-    const device = devices.find((item) => item.id === deviceId)
+    const device = allDevices.find((item) => item.id === deviceId)
     const bands = dayBands(date)
     const isFija = contract.mode === 'fija'
 
@@ -193,9 +210,10 @@ export function UsageEditor({ target, date, devices, contract, dayUsages, onDele
                 onChange={(id) => {
                   pickDevice(id)
                   // Aquí el aparato se elige dentro de la hoja: un uso nuevo toma su duración habitual
-                  const usual = devices.find((item) => item.id === id)?.defaultHours
+                  const usual = allDevices.find((item) => item.id === id)?.defaultHours
                   if (!editing && usual) setRange(start, Math.min(usual, 24 - start))
                 }}
+                onCreate={() => setCreatingDevice(true)}
               />
             </>
           )}
@@ -245,13 +263,14 @@ export function UsageEditor({ target, date, devices, contract, dayUsages, onDele
 
           {actions}
         </form>
+        {deviceDialog}
       </Modal>
     )
   }
 
   // En el escritorio las horas se escriben: las cuentas salen en cuanto el rango es válido
   const typed = parseRange(from, to)
-  const typedDevice = devices.find((item) => item.id === deviceId)
+  const typedDevice = allDevices.find((item) => item.id === deviceId)
 
   return (
     <Modal open onClose={onClose} title={title} aside={aside}>
@@ -259,7 +278,7 @@ export function UsageEditor({ target, date, devices, contract, dayUsages, onDele
         {!routine && (
           <>
             <div className="label mt-5 mb-2.5">Aparato</div>
-            <DevicePicker devices={devices} value={deviceId} onChange={pickDevice} />
+            <DevicePicker devices={devices} value={deviceId} onChange={pickDevice} onCreate={() => setCreatingDevice(true)} />
           </>
         )}
 
@@ -290,6 +309,7 @@ export function UsageEditor({ target, date, devices, contract, dayUsages, onDele
 
         {actions}
       </form>
+      {deviceDialog}
     </Modal>
   )
 }

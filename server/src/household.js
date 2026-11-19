@@ -46,11 +46,13 @@ export const usageJson = (usage) => ({
   hours: usage.hours,
 })
 
+/** Consumo fijo con los datos de su aparato; hay que cargarlo con `include: 'device'` */
 export const fixedLoadJson = (load) => ({
   id: load.id,
-  name: load.name,
-  watts: load.watts,
-  color: load.color,
+  deviceId: load.deviceId,
+  name: load.device.name,
+  watts: load.device.watts,
+  color: load.device.color,
   note: load.note,
 })
 

@@ -7,22 +7,38 @@ const CHIP = 'rounded-control border px-3 py-2 text-[13px] leading-tight max-sm:
 const CHIP_ON = 'border-ink bg-ink text-white'
 const CHIP_OFF = 'border-line-strong bg-control text-ink hover:border-ink/40 hover:bg-surface'
 
-/** Elegir un aparato entre los de la casa */
-export function DevicePicker({ devices, value, onChange }) {
+/**
+ * Elegir un aparato entre los de la casa. Con `onCreate`, al final va «+ Nuevo aparato» para dar
+ * de alta uno sin salir del diálogo en el que se está.
+ */
+export function DevicePicker({ devices, value, onChange, onCreate }) {
   return (
-    <div className="flex flex-wrap gap-[7px]" role="radiogroup" aria-label="Aparato">
-      {devices.map((device) => (
+    <div className="flex flex-wrap gap-[7px]">
+      {devices.length > 0 && (
+        <div className="contents" role="radiogroup" aria-label="Aparato">
+          {devices.map((device) => (
+            <button
+              key={device.id}
+              type="button"
+              role="radio"
+              aria-checked={device.id === value}
+              onClick={() => onChange(device.id)}
+              className={`${CHIP} ${device.id === value ? CHIP_ON : CHIP_OFF}`}
+            >
+              {device.name}
+            </button>
+          ))}
+        </div>
+      )}
+      {onCreate && (
         <button
-          key={device.id}
           type="button"
-          role="radio"
-          aria-checked={device.id === value}
-          onClick={() => onChange(device.id)}
-          className={`${CHIP} ${device.id === value ? CHIP_ON : CHIP_OFF}`}
+          onClick={onCreate}
+          className={`${CHIP} border-dashed border-ink/35 bg-transparent text-ink-2 hover:border-ink/60 hover:bg-control hover:text-ink`}
         >
-          {device.name}
+          + Nuevo aparato
         </button>
-      ))}
+      )}
     </div>
   )
 }

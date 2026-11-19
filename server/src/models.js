@@ -48,14 +48,13 @@ Usage.init(
   { sequelize, tableName: 'usages' },
 )
 
+/** Un aparato que está enchufado las 24 h; el nombre, los vatios y el color son los del aparato */
 export class FixedLoad extends Model {}
 FixedLoad.init(
   {
     id,
     userId,
-    name: { type: DataTypes.TEXT, allowNull: false },
-    watts: { type: DataTypes.INTEGER, allowNull: false },
-    color: { type: DataTypes.TEXT, allowNull: false },
+    deviceId: { type: DataTypes.UUID, allowNull: false, unique: true },
     note: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' },
     ...timestamps,
   },
@@ -146,4 +145,5 @@ Invoice.init(
 )
 
 Routine.hasMany(RoutineSkip, { as: 'skips', foreignKey: 'routineId' })
+FixedLoad.belongsTo(Device, { as: 'device', foreignKey: 'deviceId' })
 Invoice.hasMany(InvoiceLine, { as: 'lines', foreignKey: 'invoiceId' })

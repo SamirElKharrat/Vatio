@@ -28,7 +28,11 @@ async function createAccount(email, role) {
   const user = await User.create({ email, role, passwordHash: await hashPassword(PASSWORD) })
   await createEmptyHousehold(user.id)
   await Device.bulkCreate(TEST_DEVICES.map((device) => ({ ...device, userId: user.id })))
-  await FixedLoad.bulkCreate(TEST_FIXED_LOADS.map((load) => ({ ...load, userId: user.id })))
+  // Cada consumo fijo es un aparato enchufado las 24 h
+  for (const { note, ...device } of TEST_FIXED_LOADS) {
+    const created = await Device.create({ ...device, defaultHours: 24, userId: user.id })
+    await FixedLoad.create({ deviceId: created.id, note, userId: user.id })
+  }
   return user
 }
 
@@ -274,9 +278,9 @@ describe('rutinas', () => {
 
     const loads = await ana.get('/api/fixed-loads')
     const nevera = loads.body.fixedLoads.find((load) => load.name === 'Nevera')
-    const patched = await ana.patch(`/api/fixed-loads/${nevera.id}`).send({ watts: 50 })
-    expect(patched.body.fixedLoad).toMatchObject({ watts: 50, note: nevera.note })
-    expect(nevera.note).not.toBe('')
+    const patched = await ana.patch(`/api/fixed-loads/${nevera.id}`).send({ note: 'otra nota' })
+    expect(patched.body.fixedLoad).toMatchObject({ name: 'Nevera', watts: 45, note: 'otra nota' })
+    await ana.patch(`/api/fixed-loads/${nevera.id}`).send({ note: nevera.note })
   })
 
   it('exige al menos un día de la semana', async () => {
@@ -358,6 +362,49 @@ describe('lectura del PDF de una factura', () => {
     expect(res.status).toBe(422)
     expect(res.body.code).toBe('not_a_pdf')
     expect((await ana.get('/api/invoices')).body.invoices).toHaveLength(before)
+  })
+})
+
+describe('consumos fijos a partir de un aparato', () => {
+  it('cada fijo lleva el nombre, los vatios y el color de su aparato', async () => {
+    const { fixedLoads } = (await ana.get('/api/fixed-loads')).body
+    const { devices } = (await ana.get('/api/devices')).body
+    const nevera = fixedLoads.find((load) => load.name === 'Nevera')
+    expect(devices.find((device) => device.id === nevera.deviceId)).toMatchObject({ name: 'Nevera', watts: 45 })
+  })
+
+  it('cambiar los vatios del aparato cambia los del fijo', async () => {
+    const nevera = await deviceNamed(ana, 'Nevera')
+    await ana.patch(`/api/devices/${nevera.id}`).send({ watts: 60 })
+    const load = (await ana.get('/api/fixed-loads')).body.fixedLoads.find((item) => item.deviceId === nevera.id)
+    expect(load.watts).toBe(60)
+    await ana.patch(`/api/devices/${nevera.id}`).send({ watts: 45 })
+  })
+
+  it('un aparato se marca como fijo una sola vez y sólo si es de la cuenta', async () => {
+    const created = await ana.post('/api/devices').send({ name: 'Congelador', watts: 35, defaultHours: 24, color: '#009ead' })
+    const id = created.body.device.id
+    const fixed = await ana.post('/api/fixed-loads').send({ deviceId: id, note: 'en el garaje' })
+    expect(fixed.status).toBe(201)
+    expect(fixed.body.fixedLoad).toMatchObject({ deviceId: id, name: 'Congelador', watts: 35, note: 'en el garaje' })
+
+    expect((await ana.post('/api/fixed-loads').send({ deviceId: id })).status).toBe(409)
+    expect((await luis.post('/api/fixed-loads').send({ deviceId: id })).status).toBe(404)
+    expect((await ana.post('/api/fixed-loads').send({ deviceId: 'no-es-un-id' })).status).toBe(400)
+
+    // Dejar de contar como fijo no borra el aparato; borrar el aparato sí borra el fijo
+    await ana.delete(`/api/fixed-loads/${fixed.body.fixedLoad.id}`)
+    expect(await deviceNamed(ana, 'Congelador')).toBeTruthy()
+    const again = await ana.post('/api/fixed-loads').send({ deviceId: id })
+    await ana.delete(`/api/devices/${id}`)
+    const loads = (await ana.get('/api/fixed-loads')).body.fixedLoads
+    expect(loads.find((load) => load.id === again.body.fixedLoad.id)).toBeUndefined()
+  })
+
+  it('no deja cambiar los vatios desde el fijo, sólo la nota', async () => {
+    const nevera = (await ana.get('/api/fixed-loads')).body.fixedLoads.find((load) => load.name === 'Nevera')
+    const res = await ana.patch(`/api/fixed-loads/${nevera.id}`).send({ watts: 999 })
+    expect(res.status).toBe(400)
   })
 })
 

@@ -1,20 +1,21 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
-import { useFixedLoadCrud, useHousehold, usePauseRoutine, useSkipRoutine, useUpdateFixedLoad } from '../../api/hooks'
+import { useHousehold, usePauseRoutine, useSkipRoutine, useUpdateDevice } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
 import { ErrorNotice, InfoNotice, Loading } from '../../components/ui/Notice'
 import { NumberInput } from '../../components/ui/NumberInput'
 import { SectionHeader } from '../../components/ui/SectionHeader'
 import { daySummary } from '../../domain/aggregates'
+import { loggableDevices } from '../../domain/devices'
 import { usageCost, usageKwh } from '../../domain/cost'
 import { approxEur, eur, kwh } from '../../domain/format'
 import { routineStatus, routineWhen } from '../../domain/routines'
 import { addDays, formatHM, startOfWeek } from '../../domain/time'
 import { dayTitle, shortDate, todayISO } from '../../lib/dates'
-import { firstFreeColor } from '../../lib/palette'
-import { ItemEditor } from '../aparatos/ItemEditor'
+import { DeviceEditor } from '../aparatos/DeviceEditor'
 import { deviceColor } from '../consumo/colors'
+import { FixedLoadEditor } from './FixedLoadEditor'
 import { RoutineEditor } from './RoutineEditor'
 
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
@@ -29,26 +30,15 @@ const STATUS = {
 
 /** Lo que está enchufado las 24 h: se suma solo a todos los días */
 function FixedLoads({ home, today }) {
-  const inline = useUpdateFixedLoad()
-  const crud = useFixedLoadCrud()
+  // Los vatios de un fijo son los de su aparato: se cambian ahí
+  const inline = useUpdateDevice()
   const [editing, setEditing] = useState(null)
+  const [editingDeviceId, setEditingDeviceId] = useState(null)
+  const editingDevice = home.devices.find((device) => device.id === editingDeviceId)
 
   const day = daySummary(home, today)
   const share = day.total.cost > 0 ? Math.round((day.fixed.cost / day.total.cost) * 100) : 0
   const wattsMax = Math.max(1, ...home.fixedLoads.map((load) => load.watts))
-
-  function close() {
-    crud.create.reset()
-    crud.save.reset()
-    crud.remove.reset()
-    setEditing(null)
-  }
-
-  function save(values) {
-    const input = { name: values.name, watts: values.watts, color: values.color, note: values.extra }
-    if (editing === 'new') crud.create.mutate(input, { onSuccess: close })
-    else if (editing) crud.save.mutate({ id: editing.id, changes: input }, { onSuccess: close })
-  }
 
   return (
     <section>
@@ -112,7 +102,7 @@ function FixedLoads({ home, today }) {
                 min={1}
                 max={100000}
                 value={load.watts}
-                onCommit={(watts) => inline.update(load.id, { watts })}
+                onCommit={(watts) => inline.update(load.deviceId, { watts })}
               />
               <Button size="sm" onClick={() => setEditing(load)} aria-label={`Editar ${load.name}`}>
                 Editar
@@ -134,25 +124,19 @@ function FixedLoads({ home, today }) {
       })}
 
       {editing && (
-        <ItemEditor
+        <FixedLoadEditor
           key={editing === 'new' ? 'new' : editing.id}
-          title={editing === 'new' ? 'Añadir consumo fijo' : 'Editar consumo fijo'}
-          isEdit={editing !== 'new'}
-          initial={
-            editing === 'new'
-              ? { name: '', watts: 20, color: firstFreeColor(home.fixedLoads.map((load) => load.color)), extra: '' }
-              : { name: editing.name, watts: editing.watts, color: editing.color, extra: editing.note }
-          }
-          extraLabel="Nota"
-          extraPlaceholder="siempre encendido"
-          extraHint="Los vatios son la media de las 24 h, no el pico al arrancar"
-          deleteWarning="Dejará de sumarse a todos los días, también a los pasados."
-          pending={crud.create.isPending || crud.save.isPending || crud.remove.isPending}
-          error={crud.create.error ?? crud.save.error ?? crud.remove.error}
-          onSave={save}
-          onDelete={() => editing !== 'new' && crud.remove.mutate(editing.id, { onSuccess: close })}
-          onClose={close}
+          load={editing === 'new' ? null : editing}
+          home={home}
+          onEditDevice={(id) => {
+            setEditing(null)
+            setEditingDeviceId(id)
+          }}
+          onClose={() => setEditing(null)}
         />
+      )}
+      {editingDevice && (
+        <DeviceEditor device={editingDevice} devices={home.devices} onClose={() => setEditingDeviceId(null)} />
       )}
     </section>
   )
@@ -251,12 +235,7 @@ function Routines({ home, today }) {
       <SectionHeader
         title="Rutinas"
         action={
-          <Button
-            variant="primary"
-            disabled={home.devices.length === 0}
-            title={home.devices.length === 0 ? 'Añade antes un aparato' : undefined}
-            onClick={() => setCreating(true)}
-          >
+          <Button variant="primary" onClick={() => setCreating(true)}>
             + Nueva rutina
           </Button>
         }
@@ -285,7 +264,8 @@ function Routines({ home, today }) {
         <RoutineEditor
           key={editing?.id ?? 'new'}
           routine={editing}
-          devices={home.devices}
+          devices={loggableDevices(home)}
+          allDevices={home.devices}
           onClose={() => {
             setCreating(false)
             edit(null)

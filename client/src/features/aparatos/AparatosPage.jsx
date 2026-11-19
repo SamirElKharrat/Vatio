@@ -1,27 +1,20 @@
 import { useState } from 'react'
 import { errorMessage } from '../../api/client'
-import { useDeviceCrud, useHousehold, useUpdateDevice } from '../../api/hooks'
+import { useHousehold, useUpdateDevice } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
 import { ErrorNotice, Loading } from '../../components/ui/Notice'
 import { NumberInput } from '../../components/ui/NumberInput'
 import { SectionHeader } from '../../components/ui/SectionHeader'
 import { periodSummary } from '../../domain/aggregates'
 import { approxEur, kwh } from '../../domain/format'
-import { addDays, datesBetween, formatHM, parseHM, startOfWeek } from '../../domain/time'
+import { addDays, datesBetween, startOfWeek } from '../../domain/time'
 import { monthRange, todayISO } from '../../lib/dates'
-import { firstFreeColor } from '../../lib/palette'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { deviceColor } from '../consumo/colors'
-import { ItemEditor } from './ItemEditor'
+import { DeviceEditor } from './DeviceEditor'
 
 const GRID =
   'grid grid-cols-[minmax(160px,1fr)_150px_56px_96px_86px_minmax(150px,230px)_72px] items-center gap-4 px-1'
-
-/** Lee una duración escrita como «1:30» o «1,5» y la devuelve en horas; `null` si no vale */
-function parseDuration(text) {
-  const hours = parseHM(text)
-  return hours !== null && hours >= 0.25 ? hours : null
-}
 
 /** Pestaña Aparatos: los vatios de cada aparato y lo que gasta cada uno esta semana y este mes */
 export function AparatosPage() {
@@ -32,7 +25,6 @@ export function AparatosPage() {
   const weekData = useHousehold(monday, sunday)
   const monthData = useHousehold(month.from, month.to)
   const inline = useUpdateDevice()
-  const crud = useDeviceCrud()
   const [editing, setEditing] = useState(null)
   const mobile = useIsMobile()
 
@@ -56,21 +48,17 @@ export function AparatosPage() {
   const week = periodSummary(weekData.home, datesBetween(monday, sunday))
   const monthTotals = periodSummary(monthData.home, datesBetween(month.from, month.to))
   const costMax = Math.max(0.0001, ...devices.map((device) => week.byDevice[device.id]?.cost ?? 0))
-
-  // Al cerrar se olvida el error de un guardado anterior, para que no reaparezca al volver a abrir
-  function close() {
-    crud.create.reset()
-    crud.save.reset()
-    crud.remove.reset()
-    setEditing(null)
-  }
-
-  function save(values) {
-    const input = { name: values.name, watts: values.watts, color: values.color, defaultHours: parseDuration(values.extra) }
-    const options = { onSuccess: close }
-    if (editing === 'new') crud.create.mutate(input, options)
-    else if (editing) crud.save.mutate({ id: editing.id, changes: input }, options)
-  }
+  // Los aparatos que cuentan como consumo fijo: no se apuntan, se suman solos las 24 h
+  const fixedIds = new Set(weekData.home.fixedLoads.map((load) => load.deviceId))
+  const fixedChip = (device) =>
+    fixedIds.has(device.id) && (
+      <span
+        title="Cuenta como consumo fijo: se suma solo todo el día y no se apunta"
+        className="flex-none rounded-[5px] bg-accent/10 px-1.5 py-[3px] font-mono text-[10.5px] leading-none text-accent-ink"
+      >
+        Fijo · 24 h
+      </span>
+    )
 
   return (
     <div className="max-w-[1120px]">
@@ -114,6 +102,7 @@ export function AparatosPage() {
                 <div className="flex items-center gap-3">
                   <span className="size-3 flex-none rounded-[4px]" style={{ background: deviceColor(device.color) }} />
                   <span className="min-w-0 flex-1 truncate text-[15.5px] font-medium">{device.name}</span>
+                  {fixedChip(device)}
                   <NumberInput
                     label={`Potencia de ${device.name}`}
                     unit="W"
@@ -179,6 +168,7 @@ export function AparatosPage() {
                   <div className="flex min-w-0 items-center gap-[11px]">
                     <span className="size-[11px] flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />
                     <span className="truncate text-[14px]">{device.name}</span>
+                    {fixedChip(device)}
                   </div>
                   <div className="text-center">
                     <NumberInput
@@ -217,25 +207,15 @@ export function AparatosPage() {
       )}
 
       {editing && (
-        <ItemEditor
-          key={editing === 'new' ? 'new' : editing.id}
-          title={editing === 'new' ? 'Añadir aparato' : 'Editar aparato'}
-          isEdit={editing !== 'new'}
-          initial={
-            editing === 'new'
-              ? { name: '', watts: 1000, color: firstFreeColor(devices.map((device) => device.color)), extra: '1:00' }
-              : { name: editing.name, watts: editing.watts, color: editing.color, extra: formatHM(editing.defaultHours) }
+        <DeviceEditor
+          device={editing === 'new' ? null : editing}
+          devices={devices}
+          deleteWarning={
+            fixedIds.has(editing.id)
+              ? 'Se borrarán también todos sus usos y rutinas, y dejará de contar como consumo fijo.'
+              : 'Se borrarán también todos los usos apuntados de este aparato y sus rutinas.'
           }
-          extraLabel="Duración"
-          extraPlaceholder="1:30"
-          extraHint="Lo que suele durar un uso, escrito como 1:30 · se propone al apuntar"
-          validateExtra={(value) => (parseDuration(value) === null ? 'Escribe la duración como 1:30' : null)}
-          deleteWarning="Se borrarán también todos los usos apuntados de este aparato y sus rutinas."
-          pending={crud.create.isPending || crud.save.isPending || crud.remove.isPending}
-          error={crud.create.error ?? crud.save.error ?? crud.remove.error}
-          onSave={save}
-          onDelete={() => editing !== 'new' && crud.remove.mutate(editing.id, { onSuccess: close })}
-          onClose={close}
+          onClose={() => setEditing(null)}
         />
       )}
     </div>

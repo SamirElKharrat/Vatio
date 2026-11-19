@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { ErrorNotice } from '../../components/ui/Notice'
 import { Stat, StatRow } from '../../components/ui/Stat'
 import { daySummary } from '../../domain/aggregates'
+import { loggableDevices } from '../../domain/devices'
 import { usageCost, usageKwh } from '../../domain/cost'
 import { approxEur, eur, kwh } from '../../domain/format'
 import { bandAt, dayBands, isValleDay } from '../../domain/tariff'
@@ -157,6 +158,11 @@ export function DayView({ home, date }) {
   const isFija = contract.mode === 'fija'
   const bands = dayBands(date)
   const devices = new Map(home.devices.map((device) => [device.id, device]))
+  // Los aparatos que son consumo fijo no se apuntan: sólo salen en la rejilla si ese día tienen algún uso
+  const loggable = loggableDevices(home)
+  const rows = home.devices.filter(
+    (device) => loggable.includes(device) || day.usages.some((usage) => usage.deviceId === device.id),
+  )
 
   const dragged = drag ? day.usages.find((usage) => usage.id === drag.id) : undefined
   const clash = !!dragged && hasOverlap(day.usages, dragged.deviceId, dragged.start, dragged.hours, dragged.id)
@@ -222,7 +228,8 @@ export function DayView({ home, date }) {
         <UsageEditor
           target={dialog.target}
           date={date}
-          devices={home.devices}
+          devices={loggable}
+          allDevices={home.devices}
           contract={contract}
           dayUsages={day.usages}
           onDelete={remove.remove}
@@ -241,7 +248,7 @@ export function DayView({ home, date }) {
           day={day}
           notice={notice}
           onOpen={openUsage}
-          onAdd={() => openEditor({ mode: 'new', deviceId: home.devices[0].id })}
+          onAdd={() => openEditor({ mode: 'new', deviceId: loggable[0]?.id ?? '' })}
         />
         {dialogs}
       </>
@@ -303,9 +310,9 @@ export function DayView({ home, date }) {
             </div>
           </div>
 
-          {home.devices.length === 0 && (
+          {rows.length === 0 && (
             <p className="border-t border-line py-6 text-[13.5px] text-ink-2">
-              Aún no hay aparatos. Añádelos en{' '}
+              Aún no hay aparatos que apuntar. Añádelos en{' '}
               <Link to="/aparatos" className="font-medium text-ink underline underline-offset-2">
                 Aparatos
               </Link>{' '}
@@ -313,7 +320,7 @@ export function DayView({ home, date }) {
             </p>
           )}
 
-          {home.devices.map((device) => (
+          {rows.map((device) => (
             <div key={device.id} className={`${GRID} items-center border-t border-line hover:bg-hover`}>
               <div className="flex items-center gap-2.5 pr-3.5 pl-1">
                 <span className="size-2.5 flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />

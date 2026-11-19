@@ -8,9 +8,14 @@ import { Field } from '../../components/ui/Field'
 import { Modal } from '../../components/ui/Modal'
 import { ErrorNotice } from '../../components/ui/Notice'
 import { formatHM, parseRange } from '../../domain/time'
+import { DeviceEditor } from '../aparatos/DeviceEditor'
 
-/** Diálogo para crear o cambiar una rutina: qué aparato, a qué horas y qué días */
-export function RoutineEditor({ routine, devices, onClose }) {
+/**
+ * Diálogo para crear o cambiar una rutina: qué aparato, a qué horas y qué días.
+ * `devices` son los que se pueden elegir (no los que cuentan como consumo fijo); `allDevices`, todos,
+ * para proponer un color libre al crear uno nuevo desde aquí.
+ */
+export function RoutineEditor({ routine, devices, allDevices = devices, onClose }) {
   const crud = useRoutineCrud()
   const noteId = useId()
   const [name, setName] = useState(routine?.name ?? '')
@@ -21,6 +26,7 @@ export function RoutineEditor({ routine, devices, onClose }) {
   const [note, setNote] = useState(routine?.note ?? '')
   const [problem, setProblem] = useState('')
   const [confirming, setConfirming] = useState(false)
+  const [creatingDevice, setCreatingDevice] = useState(false)
 
   const pending = crud.create.isPending || crud.save.isPending || crud.remove.isPending
   const serverError = crud.create.error ?? crud.save.error ?? crud.remove.error
@@ -30,6 +36,7 @@ export function RoutineEditor({ routine, devices, onClose }) {
     event.preventDefault()
     const range = parseRange(from, to)
     if (!name.trim()) return setProblem('Ponle un nombre a la rutina')
+    if (!deviceId) return setProblem('Elige un aparato o crea uno con «+ Nuevo aparato»')
     if ('error' in range) return setProblem('Revisa las horas (por ejemplo, 14:00 y 15:30)')
     if (!weekdays.length) return setProblem('Elige al menos un día de la semana')
     setProblem('')
@@ -53,7 +60,10 @@ export function RoutineEditor({ routine, devices, onClose }) {
         </div>
 
         <div className="label mt-5 mb-2.5">Aparato</div>
-        <DevicePicker devices={devices} value={deviceId} onChange={setDeviceId} />
+        <DevicePicker devices={devices} value={deviceId} onChange={setDeviceId} onCreate={() => setCreatingDevice(true)} />
+        {devices.length === 0 && (
+          <p className="mt-2 text-[12px] leading-normal text-ink-3">Aún no hay aparatos que apuntar: crea uno aquí mismo.</p>
+        )}
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           <Field mono label="Empieza a las" placeholder="14:00" value={from} onChange={(event) => setFrom(event.target.value)} />
@@ -105,6 +115,16 @@ export function RoutineEditor({ routine, devices, onClose }) {
           </div>
         )}
       </form>
+      {creatingDevice && (
+        <DeviceEditor
+          devices={allDevices}
+          onSaved={(device) => {
+            setDeviceId(device.id)
+            setProblem('')
+          }}
+          onClose={() => setCreatingDevice(false)}
+        />
+      )}
     </Modal>
   )
 }

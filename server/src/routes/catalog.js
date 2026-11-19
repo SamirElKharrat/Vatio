@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { UniqueConstraintError } from 'sequelize'
 import { z } from 'zod'
 import { currentUser } from '../auth.js'
 import { deviceJson, fixedLoadJson } from '../household.js'
@@ -43,40 +44,47 @@ devicesRouter.patch('/:id', async (req, res) => {
   res.json({ device: deviceJson(device) })
 })
 
-// Borra también sus usos y rutinas (ON DELETE CASCADE)
+// Borra también sus usos, sus rutinas y, si lo era, su consumo fijo (ON DELETE CASCADE)
 devicesRouter.delete('/:id', async (req, res) => {
   const device = await ownDevice(currentUser(res).id, req.params.id)
   await device.destroy()
   res.status(204).end()
 })
 
-// Consumos fijos
+// Consumos fijos: aparatos que están enchufados las 24 h
 
 export const fixedLoadsRouter = Router()
 
-const fixedLoadShape = {
-  name: nameSchema,
-  watts: wattsSchema,
-  color: colorSchema,
-  note: z.string().trim().max(200),
-}
-// El valor por defecto va sólo al crear: en un cambio parcial borraría la nota que no se envía
-const fixedLoadSchema = z.object({ ...fixedLoadShape, note: fixedLoadShape.note.default('') })
-const fixedLoadUpdateSchema = z.object(fixedLoadShape).partial()
+const noteSchema = z.string().trim().max(200)
+const fixedLoadSchema = z.object({ deviceId: z.uuid('Elige un aparato'), note: noteSchema.default('') })
+// Sólo cambia la nota: los vatios, el nombre y el color se cambian en el aparato
+const fixedLoadUpdateSchema = z.object({ note: noteSchema })
+const withDevice = { include: [{ model: Device, as: 'device' }] }
 
 fixedLoadsRouter.get('/', async (_req, res) => {
-  const loads = await FixedLoad.findAll({ where: { userId: currentUser(res).id }, order: [['createdAt', 'ASC']] })
+  // Los que se crearon a la vez (por ejemplo, en una migración) van por nombre, para que el orden no cambie
+  const order = [['createdAt', 'ASC'], [{ model: Device, as: 'device' }, 'name', 'ASC']]
+  const loads = await FixedLoad.findAll({ where: { userId: currentUser(res).id }, order, ...withDevice })
   res.json({ fixedLoads: loads.map(fixedLoadJson) })
 })
 
 fixedLoadsRouter.post('/', async (req, res) => {
   const data = parse(fixedLoadSchema, req.body)
-  const load = await FixedLoad.create({ ...data, userId: currentUser(res).id })
-  res.status(201).json({ fixedLoad: fixedLoadJson(load) })
+  const userId = currentUser(res).id
+  await ownDevice(userId, data.deviceId)
+  if (await FixedLoad.findOne({ where: { deviceId: data.deviceId } })) {
+    throw new HttpError(409, 'Ese aparato ya cuenta como consumo fijo')
+  }
+  const created = await FixedLoad.create({ ...data, userId }).catch((error) => {
+    // Dos altas a la vez del mismo aparato: la segunda choca con el índice único
+    if (error instanceof UniqueConstraintError) throw new HttpError(409, 'Ese aparato ya cuenta como consumo fijo')
+    throw error
+  })
+  res.status(201).json({ fixedLoad: fixedLoadJson(await FixedLoad.findByPk(created.id, withDevice)) })
 })
 
 async function ownFixedLoad(userId, id) {
-  const load = await FixedLoad.findOne({ where: { id: idParam(id), userId } })
+  const load = await FixedLoad.findOne({ where: { id: idParam(id), userId }, ...withDevice })
   if (!load) throw new HttpError(404, 'No existe ese consumo fijo')
   return load
 }
@@ -88,6 +96,7 @@ fixedLoadsRouter.patch('/:id', async (req, res) => {
   res.json({ fixedLoad: fixedLoadJson(load) })
 })
 
+// Deja de contar como fijo; el aparato se queda
 fixedLoadsRouter.delete('/:id', async (req, res) => {
   const load = await ownFixedLoad(currentUser(res).id, req.params.id)
   await load.destroy()

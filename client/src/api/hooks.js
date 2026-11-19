@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { api, ApiError } from './client'
+import { fixedLoadsWithDevices } from '../domain/devices'
 
 export const keys = {
   me: ['me'],
@@ -114,7 +115,8 @@ export function useHousehold(from, to) {
     devices.data && fixedLoads.data && routines.data && contract.data && usages.data
       ? {
           devices: devices.data,
-          fixedLoads: fixedLoads.data,
+          // Cada fijo con los datos actuales de su aparato
+          fixedLoads: fixedLoadsWithDevices(fixedLoads.data, devices.data),
           routines: routines.data,
           contract: contract.data,
           usages: usages.data,
@@ -305,11 +307,10 @@ function useListCrud(
 }
 
 export const useUpdateDevice = () => useInlineUpdate(keys.devices, '/devices')
-export const useUpdateFixedLoad = () => useInlineUpdate(keys.fixedLoads, '/fixed-loads')
 
-// Al borrar un aparato el servidor borra también sus usos y sus rutinas
+// Al borrar un aparato el servidor borra también sus usos, sus rutinas y su consumo fijo
 export const useDeviceCrud = () =>
-  useListCrud(keys.devices, '/devices', 'device', [USAGES_KEY, keys.routines])
+  useListCrud(keys.devices, '/devices', 'device', [USAGES_KEY, keys.routines, keys.fixedLoads])
 export const useFixedLoadCrud = () => useListCrud(keys.fixedLoads, '/fixed-loads', 'fixedLoad')
 export const useRoutineCrud = () => useListCrud(keys.routines, '/routines', 'routine')
 
