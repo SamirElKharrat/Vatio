@@ -1,0 +1,339 @@
+[
+ {
+  "page": 1,
+  "y": 764,
+  "items": [
+   {
+    "x": 310,
+    "text": "Periodo de facturación: del 11/07/2026 a 15/08/2026 (35 días)"
+   }
+  ],
+  "text": "Periodo de facturación: del 11/07/2026 a 15/08/2026 (35 días)"
+ },
+ {
+  "page": 1,
+  "y": 717,
+  "items": [
+   {
+    "x": 37,
+    "text": "Endesa Energía, S.A. Unipersonal."
+   }
+  ],
+  "text": "Endesa Energía, S.A. Unipersonal."
+ },
+ {
+  "page": 1,
+  "y": 546,
+  "items": [
+   {
+    "x": 47,
+    "text": "PARA TI"
+   },
+   {
+    "x": 246,
+    "text": "-5,00 €"
+   }
+  ],
+  "text": "PARA TI -5,00 €"
+ },
+ {
+  "page": 1,
+  "y": 418,
+  "items": [
+   {
+    "x": 47,
+    "text": "Consumo Total"
+   },
+   {
+    "x": 235,
+    "text": "194,586 kWh"
+   }
+  ],
+  "text": "Consumo Total 194,586 kWh"
+ },
+ {
+  "page": 2,
+  "y": 671,
+  "items": [
+   {
+    "x": 44,
+    "text": "Pot. Punta-Llano 5,500 kW x 0,093986 Eur/kW x 35 días"
+   },
+   {
+    "x": 273,
+    "text": "18,09 €"
+   }
+  ],
+  "text": "Pot. Punta-Llano 5,500 kW x 0,093986 Eur/kW x 35 días 18,09 €"
+ },
+ {
+  "page": 2,
+  "y": 663,
+  "items": [
+   {
+    "x": 44,
+    "text": "Pot. P3 5,500 kW x 0,091881 Eur/kW x 35 días"
+   },
+   {
+    "x": 273,
+    "text": "17,69 €"
+   }
+  ],
+  "text": "Pot. P3 5,500 kW x 0,091881 Eur/kW x 35 días 17,69 €"
+ },
+ {
+  "page": 2,
+  "y": 643,
+  "items": [
+   {
+    "x": 44,
+    "text": "Consumo 194,586 kWh x 0,137172 Eur/kWh"
+   },
+   {
+    "x": 273,
+    "text": "26,69 €"
+   }
+  ],
+  "text": "Consumo 194,586 kWh x 0,137172 Eur/kWh 26,69 €"
+ },
+ {
+  "page": 2,
+  "y": 622,
+  "items": [
+   {
+    "x": 44,
+    "text": "Financiación Bono Social 35 días x 0,024688 Eur/día"
+   },
+   {
+    "x": 277,
+    "text": "0,86 €"
+   }
+  ],
+  "text": "Financiación Bono Social 35 días x 0,024688 Eur/día 0,86 €"
+ },
+ {
+  "page": 2,
+  "y": 614,
+  "items": [
+   {
+    "x": 44,
+    "text": "Alquiler del contador ( 35 días x 0,026630 Eur/día )"
+   },
+   {
+    "x": 277,
+    "text": "0,93 €"
+   }
+  ],
+  "text": "Alquiler del contador ( 35 días x 0,026630 Eur/día ) 0,93 €"
+ },
+ {
+  "page": 2,
+  "y": 595,
+  "items": [
+   {
+    "x": 44,
+    "text": "Impuesto electricidad ( 63,33 Eur X 5,1126963 %)"
+   },
+   {
+    "x": 277,
+    "text": "3,24 €"
+   }
+  ],
+  "text": "Impuesto electricidad ( 63,33 Eur X 5,1126963 %) 3,24 €"
+ },
+ {
+  "page": 2,
+  "y": 587,
+  "items": [
+   {
+    "x": 44,
+    "text": "IGIC reducido 0 %"
+   },
+   {
+    "x": 109,
+    "text": "s/ 0,86"
+   },
+   {
+    "x": 277,
+    "text": "0,00 €"
+   }
+  ],
+  "text": "IGIC reducido 0 % s/ 0,86 0,00 €"
+ },
+ {
+  "page": 2,
+  "y": 579,
+  "items": [
+   {
+    "x": 44,
+    "text": "IGIC reducido 0%"
+   },
+   {
+    "x": 107,
+    "text": "s/ 65,71"
+   },
+   {
+    "x": 277,
+    "text": "0,00 €"
+   }
+  ],
+  "text": "IGIC reducido 0% s/ 65,71 0,00 €"
+ },
+ {
+  "page": 2,
+  "y": 571,
+  "items": [
+   {
+    "x": 44,
+    "text": "IGIC normal 7 %"
+   },
+   {
+    "x": 104,
+    "text": "s/ 0,93"
+   },
+   {
+    "x": 277,
+    "text": "0,07 €"
+   }
+  ],
+  "text": "IGIC normal 7 % s/ 0,93 0,07 €"
+ },
+ {
+  "page": 2,
+  "y": 560,
+  "items": [
+   {
+    "x": 40,
+    "text": "TOTAL"
+   },
+   {
+    "x": 280,
+    "text": "67,57 €"
+   }
+  ],
+  "text": "TOTAL 67,57 €"
+ },
+ {
+  "page": 2,
+  "y": 547,
+  "items": [
+   {
+    "x": 40,
+    "text": "PARA TI"
+   },
+   {
+    "x": 281,
+    "text": "-5,00 €"
+   }
+  ],
+  "text": "PARA TI -5,00 €"
+ },
+ {
+  "page": 2,
+  "y": 534,
+  "items": [
+   {
+    "x": 40,
+    "text": "TOTAL A PAGAR"
+   },
+   {
+    "x": 280,
+    "text": "62,57 €"
+   }
+  ],
+  "text": "TOTAL A PAGAR 62,57 €"
+ },
+ {
+  "page": 2,
+  "y": 418,
+  "items": [
+   {
+    "x": 323,
+    "text": "Punta"
+   },
+   {
+    "x": 363,
+    "text": "25.164,883"
+   },
+   {
+    "x": 413,
+    "text": "25.230,153"
+   },
+   {
+    "x": 477,
+    "text": "1,00"
+   },
+   {
+    "x": 515,
+    "text": "0,000"
+   },
+   {
+    "x": 554,
+    "text": "65,270"
+   }
+  ],
+  "text": "Punta 25.164,883 25.230,153 1,00 0,000 65,270"
+ },
+ {
+  "page": 2,
+  "y": 410,
+  "items": [
+   {
+    "x": 323,
+    "text": "Llano"
+   },
+   {
+    "x": 367,
+    "text": "6.360,709"
+   },
+   {
+    "x": 417,
+    "text": "6.404,096"
+   },
+   {
+    "x": 477,
+    "text": "1,00"
+   },
+   {
+    "x": 515,
+    "text": "0,000"
+   },
+   {
+    "x": 554,
+    "text": "43,387"
+   }
+  ],
+  "text": "Llano 6.360,709 6.404,096 1,00 0,000 43,387"
+ },
+ {
+  "page": 2,
+  "y": 402,
+  "items": [
+   {
+    "x": 323,
+    "text": "Valle"
+   },
+   {
+    "x": 367,
+    "text": "6.837,859"
+   },
+   {
+    "x": 417,
+    "text": "6.923,788"
+   },
+   {
+    "x": 477,
+    "text": "1,00"
+   },
+   {
+    "x": 515,
+    "text": "0,000"
+   },
+   {
+    "x": 554,
+    "text": "85,929"
+   }
+  ],
+  "text": "Valle 6.837,859 6.923,788 1,00 0,000 85,929"
+ }
+]

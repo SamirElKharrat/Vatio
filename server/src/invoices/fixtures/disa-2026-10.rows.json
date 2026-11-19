@@ -1,0 +1,451 @@
+[
+ {
+  "page": 1,
+  "y": 692,
+  "items": [
+   {
+    "x": 47,
+    "text": "Disa Energía Eléctrica S.L.U"
+   }
+  ],
+  "text": "Disa Energía Eléctrica S.L.U"
+ },
+ {
+  "page": 1,
+  "y": 573,
+  "items": [
+   {
+    "x": 253,
+    "text": "Total importe factura:"
+   }
+  ],
+  "text": "Total importe factura:"
+ },
+ {
+  "page": 1,
+  "y": 541,
+  "items": [
+   {
+    "x": 253,
+    "text": "Periodo consumo:"
+   },
+   {
+    "x": 392,
+    "text": "de"
+   },
+   {
+    "x": 410,
+    "text": "20/09/2026"
+   }
+  ],
+  "text": "Periodo consumo: de 20/09/2026"
+ },
+ {
+  "page": 1,
+  "y": 530,
+  "items": [
+   {
+    "x": 392,
+    "text": "a"
+   },
+   {
+    "x": 410,
+    "text": "22/10/2026"
+   }
+  ],
+  "text": "a 22/10/2026"
+ },
+ {
+  "page": 1,
+  "y": 279,
+  "items": [
+   {
+    "x": 253,
+    "text": "Total importe factura:"
+   },
+   {
+    "x": 471,
+    "text": "40,49 €"
+   }
+  ],
+  "text": "Total importe factura: 40,49 €"
+ },
+ {
+  "page": 2,
+  "y": 688,
+  "items": [
+   {
+    "x": 168,
+    "text": "P1"
+   },
+   {
+    "x": 185,
+    "text": "3,00"
+   },
+   {
+    "x": 221,
+    "text": "P3"
+   },
+   {
+    "x": 238,
+    "text": "3,00"
+   },
+   {
+    "x": 274,
+    "text": "P2"
+   },
+   {
+    "x": 290,
+    "text": "0,00"
+   }
+  ],
+  "text": "P1 3,00 P3 3,00 P2 0,00"
+ },
+ {
+  "page": 2,
+  "y": 473,
+  "items": [
+   {
+    "x": 68,
+    "text": "P1 3,000 kW x 33 Días x 0,09990900 €/kW día"
+   },
+   {
+    "x": 431,
+    "text": "9,89 €"
+   }
+  ],
+  "text": "P1 3,000 kW x 33 Días x 0,09990900 €/kW día 9,89 €"
+ },
+ {
+  "page": 2,
+  "y": 461,
+  "items": [
+   {
+    "x": 68,
+    "text": "P3 3,000 kW x 33 Días x 0,09990900 €/kW día"
+   },
+   {
+    "x": 431,
+    "text": "9,89 €"
+   }
+  ],
+  "text": "P3 3,000 kW x 33 Días x 0,09990900 €/kW día 9,89 €"
+ },
+ {
+  "page": 2,
+  "y": 434,
+  "items": [
+   {
+    "x": 68,
+    "text": "P1 36 kWh x 0,109000 €/kWh"
+   },
+   {
+    "x": 431,
+    "text": "3,92 €"
+   }
+  ],
+  "text": "P1 36 kWh x 0,109000 €/kWh 3,92 €"
+ },
+ {
+  "page": 2,
+  "y": 422,
+  "items": [
+   {
+    "x": 68,
+    "text": "P2 34 kWh x 0,109000 €/kWh"
+   },
+   {
+    "x": 432,
+    "text": "3,71 €"
+   }
+  ],
+  "text": "P2 34 kWh x 0,109000 €/kWh 3,71 €"
+ },
+ {
+  "page": 2,
+  "y": 410,
+  "items": [
+   {
+    "x": 68,
+    "text": "P3 88 kWh x 0,109000 €/kWh"
+   },
+   {
+    "x": 431,
+    "text": "9,59 €"
+   }
+  ],
+  "text": "P3 88 kWh x 0,109000 €/kWh 9,59 €"
+ },
+ {
+  "page": 2,
+  "y": 395,
+  "items": [
+   {
+    "x": 62,
+    "text": "Productos"
+   }
+  ],
+  "text": "Productos"
+ },
+ {
+  "page": 2,
+  "y": 383,
+  "items": [
+   {
+    "x": 68,
+    "text": "Bono Social"
+   },
+   {
+    "x": 430,
+    "text": "0,63 €"
+   }
+  ],
+  "text": "Bono Social 0,63 €"
+ },
+ {
+  "page": 2,
+  "y": 368,
+  "items": [
+   {
+    "x": 62,
+    "text": "Impuesto Electricidad"
+   }
+  ],
+  "text": "Impuesto Electricidad"
+ },
+ {
+  "page": 2,
+  "y": 356,
+  "items": [
+   {
+    "x": 68,
+    "text": "5,11269632 % sobre 37,63 € x 1"
+   },
+   {
+    "x": 433,
+    "text": "1,92 €"
+   }
+  ],
+  "text": "5,11269632 % sobre 37,63 € x 1 1,92 €"
+ },
+ {
+  "page": 2,
+  "y": 341,
+  "items": [
+   {
+    "x": 62,
+    "text": "Alquiler Equipo Distribuidora"
+   }
+  ],
+  "text": "Alquiler Equipo Distribuidora"
+ },
+ {
+  "page": 2,
+  "y": 329,
+  "items": [
+   {
+    "x": 68,
+    "text": "Alquiler Equipo Distribuidora"
+   },
+   {
+    "x": 432,
+    "text": "0,88 €"
+   }
+  ],
+  "text": "Alquiler Equipo Distribuidora 0,88 €"
+ },
+ {
+  "page": 2,
+  "y": 104,
+  "items": [
+   {
+    "x": 65,
+    "text": "Impuesto IGIC DOMÉSTICOS 2020 (0,0"
+   },
+   {
+    "x": 197,
+    "text": "%"
+   },
+   {
+    "x": 204,
+    "text": ") al 39,55"
+   },
+   {
+    "x": 444,
+    "text": "-"
+   },
+   {
+    "x": 452,
+    "text": "€"
+   }
+  ],
+  "text": "Impuesto IGIC DOMÉSTICOS 2020 (0,0 % ) al 39,55 - €"
+ },
+ {
+  "page": 2,
+  "y": 93,
+  "items": [
+   {
+    "x": 65,
+    "text": "Impuesto IGIC DOMÉSTICOS 2020 (7,0"
+   },
+   {
+    "x": 195,
+    "text": "%"
+   },
+   {
+    "x": 203,
+    "text": ") al 0,88"
+   },
+   {
+    "x": 434,
+    "text": "0,06 €"
+   }
+  ],
+  "text": "Impuesto IGIC DOMÉSTICOS 2020 (7,0 % ) al 0,88 0,06 €"
+ },
+ {
+  "page": 2,
+  "y": 78,
+  "items": [
+   {
+    "x": 65,
+    "text": "Total importe factura"
+   },
+   {
+    "x": 432,
+    "text": "40,49 €"
+   }
+  ],
+  "text": "Total importe factura 40,49 €"
+ },
+ {
+  "page": 3,
+  "y": 428,
+  "items": [
+   {
+    "x": 53,
+    "text": "P1"
+   },
+   {
+    "x": 97,
+    "text": "25.277"
+   },
+   {
+    "x": 150,
+    "text": "25.313"
+   },
+   {
+    "x": 214,
+    "text": "36"
+   },
+   {
+    "x": 280,
+    "text": "0"
+   },
+   {
+    "x": 338,
+    "text": "0"
+   },
+   {
+    "x": 393,
+    "text": "0"
+   },
+   {
+    "x": 445,
+    "text": "0"
+   },
+   {
+    "x": 500,
+    "text": "0"
+   }
+  ],
+  "text": "P1 25.277 25.313 36 0 0 0 0 0"
+ },
+ {
+  "page": 3,
+  "y": 416,
+  "items": [
+   {
+    "x": 53,
+    "text": "P2"
+   },
+   {
+    "x": 100,
+    "text": "6.445"
+   },
+   {
+    "x": 153,
+    "text": "6.478"
+   },
+   {
+    "x": 214,
+    "text": "34"
+   },
+   {
+    "x": 280,
+    "text": "0"
+   },
+   {
+    "x": 338,
+    "text": "0"
+   },
+   {
+    "x": 393,
+    "text": "0"
+   },
+   {
+    "x": 445,
+    "text": "0"
+   },
+   {
+    "x": 500,
+    "text": "0"
+   }
+  ],
+  "text": "P2 6.445 6.478 34 0 0 0 0 0"
+ },
+ {
+  "page": 3,
+  "y": 404,
+  "items": [
+   {
+    "x": 53,
+    "text": "P3"
+   },
+   {
+    "x": 99,
+    "text": "7.015"
+   },
+   {
+    "x": 155,
+    "text": "7.103"
+   },
+   {
+    "x": 213,
+    "text": "88"
+   },
+   {
+    "x": 280,
+    "text": "0"
+   },
+   {
+    "x": 338,
+    "text": "0"
+   },
+   {
+    "x": 393,
+    "text": "0"
+   },
+   {
+    "x": 445,
+    "text": "0"
+   },
+   {
+    "x": 500,
+    "text": "0"
+   }
+  ],
+  "text": "P3 7.015 7.103 88 0 0 0 0 0"
+ }
+]

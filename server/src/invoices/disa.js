@@ -2,6 +2,8 @@ import { findRow, findRows, isoDate, num, requireAmount, requireRow, round2, rou
 import { InvoiceFormatError } from './types.js'
 
 const N = '([\\d.]*\\d,\\d+)'
+// Cantidades (kWh, kW): según el mes vienen con decimales («26,517 kWh») o sin ellos («36 kWh»)
+const Q = '(\\d[\\d.]*(?:,\\d+)?)'
 const BAND_OF = { P1: 'punta', P2: 'llano', P3: 'valle' }
 
 /**
@@ -19,7 +21,7 @@ export function parseDisa(rows) {
   if (!periodEnd) throw new InvoiceFormatError('el final del periodo de consumo')
 
   // Potencia
-  const powerRows = findRows(rows, new RegExp(`^(P\\d) ${N} kW x (\\d+) Días x ${N} €/kW día`))
+  const powerRows = findRows(rows, new RegExp(`^(P\\d) ${Q} kW x (\\d+) Días x ${N} €/kW día`))
   if (powerRows.length === 0) throw new InvoiceFormatError('el término de potencia')
   const days = Number(powerRows[0].match[3])
   const power = { puntaLlano: { kw: 0, pricePerKwDay: 0 }, valle: { kw: 0, pricePerKwDay: 0 } }
@@ -30,7 +32,7 @@ export function parseDisa(rows) {
   const powerTotal = round2(lines.reduce((total, line) => total + line.amount, 0))
 
   // Energía, una línea por tramo
-  const energyRows = findRows(rows, new RegExp(`^(P\\d) ${N} kWh x ${N} €/kWh`))
+  const energyRows = findRows(rows, new RegExp(`^(P\\d) ${Q} kWh x ${N} €/kWh`))
   if (energyRows.length === 0) throw new InvoiceFormatError('el término de energía')
   const kwhByBand = { punta: 0, llano: 0, valle: 0 }
   const prices = { punta: 0, llano: 0, valle: 0 }

@@ -25,8 +25,9 @@ export function parseEndesa(rows) {
   }
   if (powerRows.length === 0) throw new InvoiceFormatError('el término de potencia')
 
-  // Energía: puede venir partida en varias líneas con el mismo precio
-  const energyRows = findRows(rows, new RegExp(`^Facturación del Consumo ${N} kWh x ${N} Eur/kWh`))
+  // Energía: puede venir partida en varias líneas con el mismo precio. Según el mes, la línea empieza por
+  // «Facturación del Consumo» o sólo por «Consumo»; «Consumo Total … kWh» no encaja porque no lleva « x … Eur/kWh».
+  const energyRows = findRows(rows, new RegExp(`^(?:Facturación del )?Consumo ${N} kWh x ${N} Eur/kWh`))
   if (energyRows.length === 0) throw new InvoiceFormatError('la facturación del consumo')
   const energyAmounts = energyRows.map(({ row }) => requireAmount(row, 'el importe de la energía'))
   const energyPrices = energyRows.map(({ match }) => num(match[2]))

@@ -128,6 +128,98 @@ describe('factura de DISA', () => {
   })
 })
 
+// Las dos facturas siguientes son de meses en los que cambió la forma de una línea. Sus renglones están
+// pasados a mano desde los PDF, con la misma colocación que los de arriba y sin datos personales.
+
+describe('factura de Endesa de agosto, con la energía en una línea «Consumo …»', () => {
+  const parsed = parseEndesa(fixture('endesa-2026-08'))
+
+  it('lee el periodo, el total y el consumo por tramo', () => {
+    expect(parsed).toMatchObject({
+      provider: 'endesa',
+      from: '2026-07-11',
+      to: '2026-08-15',
+      days: 35,
+      total: 67.57,
+      kwh: 194.586,
+      kwhByBand: { punta: 65.27, llano: 43.387, valle: 85.929 },
+      warnings: [],
+    })
+  })
+
+  it('deduce el contrato: precio fijo, dos términos de potencia y sin descuentos', () => {
+    expect(parsed.contract).toMatchObject({
+      mode: 'fija',
+      fixedPrice: 0.137172,
+      power: {
+        puntaLlano: { kw: 5.5, pricePerKwDay: 0.093986 },
+        valle: { kw: 5.5, pricePerKwDay: 0.091881 },
+      },
+      discounts: [],
+      electricityTaxPct: 5.1126963,
+      supplyTaxPct: 0,
+    })
+    expect(parsed.contract.dailyFees).toEqual([
+      { label: 'Financiación bono social', pricePerDay: 0.024688, inElectricityTaxBase: true, taxPct: 0 },
+      { label: 'Alquiler del contador', pricePerDay: 0.02663, inElectricityTaxBase: false, taxPct: 7 },
+    ])
+  })
+
+  it('recoge cada concepto con su importe, sin confundir «Consumo Total» con la energía', () => {
+    const amounts = (kind) => parsed.lines.filter((line) => line.kind === kind).map((line) => line.amount)
+    expect(amounts('power')).toEqual([18.09, 17.69])
+    expect(amounts('energy')).toEqual([26.69])
+    expect(amounts('discount')).toEqual([])
+    expect(amounts('fee')).toEqual([0.86, 0.93])
+    expect(amounts('electricityTax')).toEqual([3.24])
+    expect(amounts('tax')).toEqual([0, 0, 0.07])
+    expect(amounts('adjustment')).toEqual([-5])
+  })
+})
+
+describe('factura de DISA de octubre, con los kWh sin decimales', () => {
+  const parsed = parseDisa(fixture('disa-2026-10'))
+
+  it('lee el periodo, el total y el consumo por tramo', () => {
+    expect(parsed).toMatchObject({
+      provider: 'disa',
+      from: '2026-09-20',
+      to: '2026-10-22',
+      days: 33,
+      total: 40.49,
+      kwh: 158,
+      kwhByBand: { punta: 36, llano: 34, valle: 88 },
+      warnings: [],
+    })
+  })
+
+  it('deduce el contrato: mismo precio en los tres tramos y sin descuentos', () => {
+    expect(parsed.contract).toMatchObject({
+      mode: 'fija',
+      fixedPrice: 0.109,
+      prices: { punta: 0.109, llano: 0.109, valle: 0.109 },
+      power: { puntaLlano: { kw: 3, pricePerKwDay: 0.099909 }, valle: { kw: 3, pricePerKwDay: 0.099909 } },
+      discounts: [],
+      electricityTaxPct: 5.11269632,
+      supplyTaxPct: 0,
+    })
+    expect(parsed.contract.dailyFees).toEqual([
+      { label: 'Bono social', pricePerDay: 0.019091, inElectricityTaxBase: true, taxPct: 0 },
+      { label: 'Alquiler del contador', pricePerDay: 0.026667, inElectricityTaxBase: false, taxPct: 7 },
+    ])
+  })
+
+  it('recoge cada concepto con su importe', () => {
+    const amounts = (kind) => parsed.lines.filter((line) => line.kind === kind).map((line) => line.amount)
+    expect(amounts('power')).toEqual([9.89, 9.89])
+    expect(amounts('energy')).toEqual([3.92, 3.71, 9.59])
+    expect(amounts('fee')).toEqual([0.63, 0.88])
+    expect(amounts('oneoff')).toEqual([])
+    expect(amounts('electricityTax')).toEqual([1.92])
+    expect(amounts('tax')).toEqual([0, 0.06])
+  })
+})
+
 describe('un PDF que no es la factura esperada', () => {
   it('dice qué dato falta si el texto no tiene la forma de la factura', () => {
     expect(() => parseEndesa([row('Hola')])).toThrow('el periodo de facturación')
