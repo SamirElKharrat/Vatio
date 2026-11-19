@@ -3,14 +3,14 @@ import { useHousehold } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
 import { Loading } from '../../components/ui/Notice'
 import { periodSummary } from '../../domain/aggregates'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, eur, kwh } from '../../domain/format'
 import { estimateInvoice, oneOffFees } from '../../domain/invoice'
 import { datesBetween } from '../../domain/time'
 import { rangeLabel } from '../../lib/dates'
 import { BAND_BG, BAND_NAME, deviceColor } from '../consumo/colors'
 import { ImportDialog } from './ImportDialog'
 import { InvoiceEditor } from './InvoiceEditor'
-import { providerName } from './providers'
+import { providerLabel } from './providers'
 
 const BANDS = ['punta', 'llano', 'valle']
 
@@ -64,11 +64,11 @@ function Comparison({ invoice }) {
             <div className="mt-3 font-mono text-[27px] leading-none tracking-[-0.015em] text-white">{eur(invoice.total)}</div>
           </div>
           <div className="flex-1 basis-40 rounded-panel bg-surface-2 px-5 py-[18px]">
-            <div className="label">Apuntado</div>
+            <div className="label">Estimado con lo apuntado</div>
             <div className="mt-3 font-mono text-[27px] leading-none tracking-[-0.015em]">{eur(estimated)}</div>
           </div>
           <div className={`flex-1 basis-40 rounded-panel border px-5 py-[18px] ${over ? 'border-punta-line bg-punta text-punta-ink' : 'border-gap-line bg-gap text-gap-ink'}`}>
-            <div className="label text-current">{over ? 'Te pasas de la factura' : 'Sin explicar'}</div>
+            <div className="label text-current">{over ? 'Te pasas de la factura · est.' : 'Sin explicar · est.'}</div>
             <div className="mt-3 font-mono text-[27px] leading-none tracking-[-0.015em]">{eur(Math.abs(gap))}</div>
           </div>
         </div>
@@ -164,7 +164,7 @@ function Comparison({ invoice }) {
             <div key={item.name} className="mb-3">
               <div className="mb-1.5 flex items-baseline justify-between gap-3 text-[13px]">
                 <span className="truncate">{item.name}</span>
-                <span className="font-mono text-[12.5px]">{eur(item.cost)}</span>
+                <span className="font-mono text-[12.5px]">{approxEur(item.cost)}</span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-swatch bg-ink/8">
                 <div className="h-full rounded-swatch" style={{ width: `${(item.cost / spendMax) * 100}%`, background: item.color }} />
@@ -225,7 +225,7 @@ export function InvoiceSection({ invoices }) {
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h2 className="page-title">Factura del {rangeLabel(invoice.from, invoice.to)}</h2>
                 <span className="font-mono text-[12px] text-ink-3">
-                  {[providerName(invoice.provider), `${invoice.days} días`].filter(Boolean).join(' · ')}
+                  {[providerLabel(invoice.provider), `${invoice.days} días`].filter(Boolean).join(' · ')}
                 </span>
               </div>
               <p className="page-lead mt-2">Lo que te han cobrado frente a lo que has apuntado.</p>

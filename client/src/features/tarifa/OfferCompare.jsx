@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NumberInput } from '../../components/ui/NumberInput'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, eur, kwh } from '../../domain/format'
 import { estimateInvoice } from '../../domain/invoice'
 import { BAND_NAME } from '../consumo/colors'
 
@@ -144,16 +144,16 @@ export function OfferCompare({ contract, bases }) {
       </Line>
 
       <div className="mt-2 flex items-baseline justify-between border-t border-line-strong pt-4">
-        <span className="text-[13px] text-ink-2">Ahora pagas</span>
+        <span className="text-[13px] text-ink-2">Con tu contrato (estimado)</span>
         <span className="font-mono text-[13.5px] text-ink-2">{eur(current)}</span>
       </div>
       <div className="mt-2 flex items-baseline justify-between">
-        <span className="text-[13px] text-ink-2">Con esa oferta</span>
+        <span className="text-[13px] text-ink-2">Con esa oferta (estimado)</span>
         <span className="font-mono text-[22px] leading-none tracking-[-0.01em]">{eur(withOffer)}</span>
       </div>
       <div className={`mt-4 rounded-control px-4 py-3.5 ${same ? 'bg-surface-2 text-ink-2' : delta < 0 ? 'bg-ok-soft text-ok-ink' : 'bg-danger-soft text-danger-ink'}`}>
         <div className="text-[14px] font-medium">
-          {same ? 'Sale igual' : delta < 0 ? `Ahorras ${eur(-delta)} en ${basis.days} días` : `Pagarías ${eur(delta)} más en ${basis.days} días`}
+          {same ? 'Sale igual' : delta < 0 ? `Ahorrarías ${approxEur(-delta)} en ${basis.days} días` : `Pagarías ${approxEur(delta)} más en ${basis.days} días`}
         </div>
         {!same && (
           <div className="mt-1.5 font-mono text-[12px] leading-snug opacity-85">

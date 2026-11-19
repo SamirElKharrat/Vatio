@@ -5,9 +5,10 @@ import { useFixedLoadCrud, useHousehold, usePauseRoutine, useSkipRoutine, useUpd
 import { Button } from '../../components/ui/Button'
 import { ErrorNotice, InfoNotice, Loading } from '../../components/ui/Notice'
 import { NumberInput } from '../../components/ui/NumberInput'
+import { SectionHeader } from '../../components/ui/SectionHeader'
 import { daySummary } from '../../domain/aggregates'
 import { usageCost, usageKwh } from '../../domain/cost'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, eur, kwh } from '../../domain/format'
 import { routineStatus, routineWhen } from '../../domain/routines'
 import { addDays, formatHM, startOfWeek } from '../../domain/time'
 import { dayTitle, shortDate, todayISO } from '../../lib/dates'
@@ -51,22 +52,24 @@ function FixedLoads({ home, today }) {
 
   return (
     <section>
-      <h2 className="page-title">Consumos fijos</h2>
-      <p className="page-lead mt-2">
+      <SectionHeader
+        title="Consumos fijos"
+        action={<Button onClick={() => setEditing('new')}>+ Añadir consumo fijo</Button>}
+      >
         Lo que está enchufado las 24 h y nunca apuntas: nevera, congelador, router, standby. Se suma solo todos los
         días.
-      </p>
+      </SectionHeader>
 
       <div className="mt-5 flex gap-3">
         <div className="flex-1 rounded-panel bg-surface-2 px-[18px] py-4">
-          <div className="label">Al día</div>
+          <div className="label">Al día · estimado</div>
           <div className="mt-2.5 font-mono text-[22px] leading-none tracking-[-0.01em]">{eur(day.fixed.cost)}</div>
           <div className="mt-2 font-mono text-[12px] text-ink-3">{kwh(day.fixed.kwh)}</div>
         </div>
         <div className="flex-1 rounded-panel bg-surface-2 px-[18px] py-4">
           <div className="label">Del gasto de hoy</div>
           <div className="mt-2.5 font-mono text-[22px] leading-none tracking-[-0.01em]">{share} %</div>
-          <div className="mt-2 font-mono text-[12px] text-ink-3">total {eur(day.total.cost)}</div>
+          <div className="mt-2 font-mono text-[12px] text-ink-3">total estimado {eur(day.total.cost)}</div>
         </div>
       </div>
 
@@ -123,16 +126,12 @@ function FixedLoads({ home, today }) {
                 />
               </div>
               <span className="w-[80px] text-right font-mono text-[12px] text-ink-3">{kwh(usageKwh(load.watts, 24))}</span>
-              <span className="w-[58px] text-right font-mono text-[12.5px] font-medium">{eur(cost)}</span>
-              <span className="w-[96px] text-right font-mono text-[12px] text-ink-3">{eur(cost * 30)}/mes</span>
+              <span className="w-[58px] text-right font-mono text-[12.5px] font-medium">{approxEur(cost)}</span>
+              <span className="w-[96px] text-right font-mono text-[12px] text-ink-3">{approxEur(cost * 30)}/mes</span>
             </div>
           </div>
         )
       })}
-
-      <Button className="mt-5 max-sm:w-full" onClick={() => setEditing('new')}>
-        + Añadir consumo fijo
-      </Button>
 
       {editing && (
         <ItemEditor
@@ -183,7 +182,7 @@ function RoutineCard({ routine, home, today, onEdit }) {
           <div className="text-[15px] font-medium">{routine.name}</div>
           <div className="mt-1.5 font-mono text-[12px] leading-relaxed text-ink-3">
             {routineWhen(routine.weekdays, formatHM(routine.start))} · {formatHM(routine.start)} –{' '}
-            {formatHM(routine.start + routine.hours)} · {eur(usageCost(home.contract, device.watts, today, routine.start, routine.hours))}
+            {formatHM(routine.start + routine.hours)} · {approxEur(usageCost(home.contract, device.watts, today, routine.start, routine.hours))}
             {pauseLater && ` · se pausa el ${shortDate(routine.pausedFrom)}`}
           </div>
           {routine.note && <div className="mt-2 border-l-2 border-line-strong pl-2.5 text-[12.5px] leading-snug text-ink-2">{routine.note}</div>}
@@ -249,11 +248,22 @@ function Routines({ home, today }) {
 
   return (
     <section>
-      <h2 className="page-title">Rutinas</h2>
-      <p className="page-lead mt-2">
+      <SectionHeader
+        title="Rutinas"
+        action={
+          <Button
+            variant="primary"
+            disabled={home.devices.length === 0}
+            title={home.devices.length === 0 ? 'Añade antes un aparato' : undefined}
+            onClick={() => setCreating(true)}
+          >
+            + Nueva rutina
+          </Button>
+        }
+      >
         Para enchufes inteligentes o costumbres fijas: se apuntan solas cada día. En la rejilla del día salen con borde
         punteado y ⟳.
-      </p>
+      </SectionHeader>
 
       {home.routines.length === 0 && (
         <p className="mt-5 border-y border-line py-4 text-[13.5px] text-ink-2">
@@ -270,15 +280,6 @@ function Routines({ home, today }) {
           hoy en adelante hasta que la reanudes.
         </InfoNotice>
       </div>
-      <Button
-        variant="primary"
-        className="mt-4 max-sm:w-full"
-        disabled={home.devices.length === 0}
-        title={home.devices.length === 0 ? 'Añade antes un aparato' : undefined}
-        onClick={() => setCreating(true)}
-      >
-        + Nueva rutina
-      </Button>
 
       {(creating || editing) && (
         <RoutineEditor

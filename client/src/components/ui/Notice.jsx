@@ -1,3 +1,5 @@
+import { ESTIMATE_NOTE } from '../../domain/format'
+
 /** Aviso de error junto al formulario o la zona que ha fallado */
 export function ErrorNotice({ children, action }) {
   return (
@@ -8,6 +10,16 @@ export function ErrorNotice({ children, action }) {
       <span>{children}</span>
       {action}
     </div>
+  )
+}
+
+/** Aviso al pie de las pantallas con importes calculados: son estimaciones, no la factura */
+export function EstimateNote({ className = '' }) {
+  return (
+    <p className={`flex items-baseline gap-2 text-[12px] leading-normal text-ink-3 ${className}`}>
+      <span aria-hidden="true" className="font-mono">≈</span>
+      <span>{ESTIMATE_NOTE}</span>
+    </p>
   )
 }
 

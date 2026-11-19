@@ -7,7 +7,7 @@ import { ErrorNotice } from '../../components/ui/Notice'
 import { Stat, StatRow } from '../../components/ui/Stat'
 import { daySummary } from '../../domain/aggregates'
 import { usageCost, usageKwh } from '../../domain/cost'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, eur, kwh } from '../../domain/format'
 import { bandAt, dayBands, isValleDay } from '../../domain/tariff'
 import { usagesFor } from '../../domain/routines'
 import { addDays, datesBetween, formatHM, startOfWeek, weekdayOf } from '../../domain/time'
@@ -62,7 +62,7 @@ function UsageBlock({ usage, device, contract, drag, clash, onPointerDown, onOpe
   const auto = !!usage.routineId
   const dragging = drag?.id === usage.id
   const range = `${formatHM(usage.start)}–${formatHM(usage.start + usage.hours)}`
-  const cost = eur(usageCost(contract, device.watts, usage.date, usage.start, usage.hours))
+  const cost = approxEur(usageCost(contract, device.watts, usage.date, usage.start, usage.hours))
   const title = auto
     ? `${device.name} · rutina automática ${range} · ${cost}. Pulsa para gestionarla`
     : `${device.name} · ${range} · ${kwh(usageKwh(device.watts, usage.hours))} · ${cost}. Arrastra para mover, tira de los bordes para alargar, pulsa para editar`
@@ -263,9 +263,9 @@ export function DayView({ home, date }) {
         </div>
         <StatRow>
           <Stat label="Consumo" value={kwh(day.kwh)} />
-          <Stat label="Coste" value={eur(day.cost)} />
-          <Stat label="Fijos (24 h)" value={eur(day.fixed.cost)} />
-          {!isFija && <Stat accent label="Si fuera valle" value={'−' + eur(day.valleSaving)} />}
+          <Stat label="Coste estimado" value={eur(day.cost)} />
+          <Stat label="Fijos (24 h) · est." value={eur(day.fixed.cost)} />
+          {!isFija && <Stat accent label="Si fuera valle · est." value={'−' + eur(day.valleSaving)} />}
         </StatRow>
       </div>
 
@@ -402,7 +402,7 @@ export function DayView({ home, date }) {
                   </span>
                 )}
                 <span className="w-[68px] flex-none text-right font-mono text-[13px] font-medium text-ink">
-                  {eur(usageCost(contract, device.watts, date, usage.start, usage.hours))}
+                  {approxEur(usageCost(contract, device.watts, date, usage.start, usage.hours))}
                 </span>
               </div>
             )

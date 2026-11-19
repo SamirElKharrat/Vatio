@@ -3,7 +3,7 @@ import { useUpdateContract } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
 import { ErrorNotice } from '../../components/ui/Notice'
 import { NumberInput, TextInput } from '../../components/ui/NumberInput'
-import { eur } from '../../domain/format'
+import { approxEur } from '../../domain/format'
 import { dayBands } from '../../domain/tariff'
 import { todayISO } from '../../lib/dates'
 import { BAND_BG, BAND_NAME } from '../consumo/colors'
@@ -38,6 +38,8 @@ export function ContractSection({ contract }) {
     update((current) => ({ ...current, ...changes(current) }))
   const isFija = contract.mode === 'fija'
   const bands = dayBands(nextWeekday())
+  // «Otra» guarda en `provider` el nombre que se escriba, o nada si se deja en blanco
+  const isOtherProvider = !PROVIDERS.some((option) => option.id === contract.provider)
 
   const setPower = (term, changes) =>
     set((current) => ({ power: { ...current.power, [term]: { ...current.power[term], ...changes } } }))
@@ -89,13 +91,25 @@ export function ContractSection({ contract }) {
             key={option.name}
             type="button"
             role="radio"
-            aria-checked={(contract.provider ?? null) === option.id}
-            onClick={() => set(() => ({ provider: option.id }))}
+            aria-checked={option.id === null ? isOtherProvider : contract.provider === option.id}
+            // Al pasar a «Otra» se deja el nombre que ya hubiera escrito
+            onClick={() => (option.id !== null || !isOtherProvider) && set(() => ({ provider: option.id }))}
             className="choice"
           >
             {option.name}
           </button>
         ))}
+        {isOtherProvider && (
+          <TextInput
+            label="Nombre de la comercializadora"
+            placeholder="¿Cuál? Por ejemplo, Iberdrola"
+            maxLength={40}
+            required={false}
+            className="basis-56"
+            value={contract.provider ?? ''}
+            onCommit={(name) => set(() => ({ provider: name.trim() || null }))}
+          />
+        )}
       </div>
 
       <div className="mt-5 mb-1.5 flex flex-wrap gap-2.5" role="radiogroup" aria-label="Tipo de tarifa">
@@ -142,7 +156,7 @@ export function ContractSection({ contract }) {
       ).map(([term, title, hint]) => {
         const power = contract.power[term]
         return (
-          <Row key={term} title={title} sub={`${hint} · ${eur(power.kw * power.pricePerKwDay * 30)} cada 30 días`}>
+          <Row key={term} title={title} sub={`${hint} · ${approxEur(power.kw * power.pricePerKwDay * 30)} cada 30 días`}>
             <NumberInput
               label={`Potencia en ${title.toLowerCase()}`}
               unit="kW"

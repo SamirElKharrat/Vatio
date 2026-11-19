@@ -1,4 +1,4 @@
-import { findRow, findRows, isoDate, num, requireAmount, requireRow, round2, rowAmount, sameCents } from './helpers.js'
+import { findRow, findRows, isoDate, num, requireAmount, requireRow, round2, round6, rowAmount, sameCents } from './helpers.js'
 import { InvoiceFormatError } from './types.js'
 
 const N = '([\\d.]*\\d,\\d+)'
@@ -10,7 +10,7 @@ export function parseEndesa(rows) {
 
   const period = requireRow(
     rows,
-    /Periodo de facturación: del (\d\d\/\d\d\/\d{4}) a (\d\d\/\d\d\/\d{4}) \((\d+) días\)/,
+    /Periodo de facturación: del (\d\d\/\d\d\/\d{4}) a (\d\d\/\d\d\/\d{4}) \((\d+) días?\)/,
     'el periodo de facturación',
   ).match
   const days = Number(period[3])
@@ -31,12 +31,16 @@ export function parseEndesa(rows) {
   if (energyRows.length === 0) throw new InvoiceFormatError('la facturación del consumo')
   const energyAmounts = energyRows.map(({ row }) => requireAmount(row, 'el importe de la energía'))
   const energyPrices = energyRows.map(({ match }) => num(match[2]))
-  const billedKwh = energyRows.reduce((total, { match }) => total + num(match[1]), 0)
+  const energyKwh = energyRows.map(({ match }) => num(match[1]))
+  const billedKwh = energyKwh.reduce((a, b) => a + b, 0)
   energyRows.forEach((_, i) => lines.push({ kind: 'energy', label: 'Facturación del consumo', amount: energyAmounts[i], taxPct: null }))
   const energyTotal = round2(energyAmounts.reduce((a, b) => a + b, 0))
-  const fixedPrice = energyPrices[0]
+  // Si el precio cambia a mitad de periodo, cada tramo de días trae el suyo: se usa la media
+  // ponderada por los kWh de cada uno, que es lo que ha salido el kWh en esta factura
+  let fixedPrice = energyPrices[0]
   if (energyPrices.some((price) => price !== fixedPrice)) {
-    warnings.push('La factura trae varios precios de energía; se ha tomado el primero. Revisa el precio.')
+    fixedPrice = round6(energyPrices.reduce((total, price, i) => total + price * energyKwh[i], 0) / billedKwh)
+    warnings.push('La factura trae varios precios de energía; se ha usado el precio medio. Revisa el precio en el contrato.')
   }
 
   // Descuentos. Se guardan en porcentaje sólo si se aplican a toda la energía; si no, en euros,

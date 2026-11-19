@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
 import { ErrorNotice, InfoNotice } from '../../components/ui/Notice'
 import { usageCost, usageKwh } from '../../domain/cost'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, kwh } from '../../domain/format'
 import { formatHM } from '../../domain/time'
 import { deviceColor } from './colors'
 
@@ -16,7 +16,7 @@ export function UsagePopover({ usage, device, routine, weekDays, contract, onEdi
   const navigate = useNavigate()
 
   const range = `${formatHM(usage.start)} – ${formatHM(usage.start + usage.hours)}`
-  const detail = `${device.watts} W · ${kwh(usageKwh(device.watts, usage.hours))} · ${eur(usageCost(contract, device.watts, usage.date, usage.start, usage.hours))}`
+  const detail = `${device.watts} W · ${kwh(usageKwh(device.watts, usage.hours))} · ${approxEur(usageCost(contract, device.watts, usage.date, usage.start, usage.hours))}`
   const error = skip.error ?? pause.error
 
   return (

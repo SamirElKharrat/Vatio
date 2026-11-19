@@ -53,7 +53,8 @@ export const errorHandler = (err, _req, res, _next) => {
     res.status(400).json({ error: 'El cuerpo de la petición no es JSON válido' })
     return
   }
-  console.error(err)
+  // Sólo el error y dónde ha saltado; nunca la petición, que puede traer un DNI o una contraseña
+  console.error(err instanceof Error ? (err.stack ?? err.message) : String(err))
   res.status(500).json({ error: 'Error interno del servidor' })
 }
 

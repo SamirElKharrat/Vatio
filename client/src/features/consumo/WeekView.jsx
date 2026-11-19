@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { Stat, StatRow } from '../../components/ui/Stat'
 import { periodSummary } from '../../domain/aggregates'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, eur, kwh } from '../../domain/format'
 import { bandAt } from '../../domain/tariff'
 import { addDays, datesBetween, startOfWeek } from '../../domain/time'
 import { dayTitle, rangeLabel, todayISO, weekNumber } from '../../lib/dates'
@@ -40,7 +40,7 @@ export function WeekView({ home, date }) {
         </div>
         <StatRow>
           <Stat label="Semana" value={kwh(week.kwh)} />
-          <Stat label="Coste" value={eur(week.cost)} />
+          <Stat label="Coste estimado" value={eur(week.cost)} />
         </StatRow>
       </div>
 
@@ -92,8 +92,8 @@ export function WeekView({ home, date }) {
                   <span className={`w-[84px] text-right font-mono text-[12px] ${day.kwh ? 'text-ink-2' : 'text-ink-4'}`}>
                     {day.kwh ? kwh(day.kwh) : '—'}
                   </span>
-                  <span className={`w-[60px] text-right font-mono text-[12.5px] ${day.cost ? 'font-medium' : 'text-ink-4'}`}>
-                    {day.cost ? eur(day.cost) : '—'}
+                  <span className={`w-[72px] text-right font-mono text-[12.5px] ${day.cost ? 'font-medium' : 'text-ink-4'}`}>
+                    {day.cost ? approxEur(day.cost) : '—'}
                   </span>
                 </div>
               </Link>

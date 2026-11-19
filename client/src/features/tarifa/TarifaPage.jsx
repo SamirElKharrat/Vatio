@@ -1,7 +1,7 @@
 import { errorMessage } from '../../api/client'
 import { useHousehold, useInvoices } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
-import { ErrorNotice, Loading } from '../../components/ui/Notice'
+import { ErrorNotice, EstimateNote, Loading } from '../../components/ui/Notice'
 import { periodSummary } from '../../domain/aggregates'
 import { eur, kwh } from '../../domain/format'
 import { estimateInvoice } from '../../domain/invoice'
@@ -108,6 +108,7 @@ export function TarifaPage() {
         <ContractSection contract={home.contract} />
         <Estimate home={home} invoices={invoices.data} />
       </div>
+      <EstimateNote />
     </div>
   )
 }

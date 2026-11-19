@@ -90,7 +90,7 @@ const useFixedLoads = () =>
 const useRoutines = () =>
   useQuery({ queryKey: keys.routines, queryFn: async () => (await api('/routines')).routines })
 
-const useContract = () =>
+export const useContract = () =>
   useQuery({ queryKey: keys.contract, queryFn: async () => (await api('/contract')).contract })
 
 const useUsages = (from, to) =>
@@ -379,10 +379,14 @@ export function useInvoiceCrud() {
 /** Sube el PDF para que el servidor lo lea. La contraseña sólo se usa para abrirlo y no se guarda. */
 export function useParseInvoice() {
   return useMutation({
-    mutationFn: async ({ file, provider, password }) => {
+    // `secret` es un `oneTimeSecret` con la contraseña del PDF (en DISA, el DNI del titular).
+    // Se saca al montar el envío y el contenedor se queda vacío: las variables que guarda la
+    // mutación para después ya no lo llevan.
+    mutationFn: async ({ file, provider, secret }) => {
       const form = new FormData()
       form.append('provider', provider)
-      if (password) form.append('password', password)
+      const value = secret?.take()
+      if (value) form.append(provider === 'disa' ? 'dni' : 'password', value)
       form.append('file', file)
       return (await api('/invoices/parse', { form })).parsed
     },

@@ -8,7 +8,9 @@ import { ErrorNotice, InfoNotice, Loading } from '../../components/ui/Notice'
 import { eur, kwh } from '../../domain/format'
 import { estimateInvoice, oneOffFees } from '../../domain/invoice'
 import { rangeLabel } from '../../lib/dates'
-import { asksPassword, importStep } from './importFlow'
+import { isValidDni, normalizeDni } from '../../lib/dni'
+import { oneTimeSecret } from '../../lib/oneTimeSecret'
+import { asksDni, asksPassword, breakdown, importStep } from './importFlow'
 import { PROVIDERS, providerName } from './providers'
 
 const price = (value, unit) => `${String(value).replace('.', ',')} ${unit}`
@@ -60,20 +62,36 @@ export function ImportDialog({ onClose, onImported, onManual }) {
   const [provider, setProvider] = useState(null)
   const [file, setFile] = useState(null)
   const [password, setPassword] = useState('')
+  const [dni, setDni] = useState('')
+  const [showDni, setShowDni] = useState(false)
   const [updateContract, setUpdateContract] = useState(true)
   const [dragging, setDragging] = useState(false)
 
   const step = importStep({ provider, file, reading: parse.isPending, parsed: parse.data, error: parse.error })
+  const dniOk = isValidDni(dni)
+  // Con DISA, el PDF se elige después de escribir un DNI válido
+  const canPick = !!provider && (provider !== 'disa' || dniOk)
 
-  function read(nextFile, nextProvider, nextPassword) {
+  /**
+   * Lee el PDF. La contraseña o el DNI viajan en un contenedor de un solo uso y se borran de la
+   * pantalla en este mismo momento: si no abren el PDF, se vuelven a pedir con el campo vacío.
+   */
+  function read(nextFile, nextProvider, secret) {
     setFile(nextFile)
-    parse.mutate({ file: nextFile, provider: nextProvider, password: nextPassword })
+    setPassword('')
+    setDni('')
+    setShowDni(false)
+    parse.mutate({ file: nextFile, provider: nextProvider, secret: secret ? oneTimeSecret(secret) : undefined })
   }
 
   function pick(nextFile) {
-    if (!nextFile || !provider) return
-    setPassword('')
-    read(nextFile, provider)
+    if (!nextFile || !canPick) return
+    read(nextFile, provider, provider === 'disa' ? normalizeDni(dni) : undefined)
+  }
+
+  function submitDni(event) {
+    event.preventDefault()
+    if (file && dniOk) read(file, 'disa', normalizeDni(dni))
   }
 
   function onDrop(event) {
@@ -92,13 +110,16 @@ export function ImportDialog({ onClose, onImported, onManual }) {
     apply.reset()
     setFile(null)
     setPassword('')
+    setDni('')
+    setShowDni(false)
   }
 
   // Paso 3: revisar lo leído
   if (step.name === 'review') {
     const { parsed } = step
     const bands = parsed.kwhByBand ?? { punta: 0, llano: 0, valle: parsed.kwh }
-    const check = estimateInvoice(parsed.contract, parsed.days, bands, oneOffFees(parsed)).total
+    const rebuilt = estimateInvoice(parsed.contract, parsed.days, bands, oneOffFees(parsed))
+    const check = rebuilt.total
     const matches = Math.abs(check - parsed.total) < 0.005
     const rows = summary(parsed)
     return (
@@ -118,6 +139,27 @@ export function ImportDialog({ onClose, onImported, onManual }) {
               ? `Los datos cuadran: al rehacer la factura con ellos sale el mismo total, ${eur(parsed.total)}.`
               : `Al rehacer la factura con estos datos salen ${eur(check)}, no ${eur(parsed.total)}. Puede faltar algún concepto: revísalo después en el contrato.`}
           </div>
+          {!matches && (
+            <table className="mt-3 w-full text-[12.5px]">
+              <caption className="sr-only">Diferencia por concepto</caption>
+              <thead>
+                <tr className="text-left text-ink-3">
+                  <th className="py-1.5 font-normal">Concepto</th>
+                  <th className="py-1.5 text-right font-normal">En la factura</th>
+                  <th className="py-1.5 text-right font-normal">Rehecho</th>
+                </tr>
+              </thead>
+              <tbody>
+                {breakdown(parsed, rebuilt).map((row) => (
+                  <tr key={row.label} className={`border-t border-line ${row.differs ? 'font-medium text-gap-ink' : 'text-ink-2'}`}>
+                    <td className="py-1.5 pr-2">{row.label}</td>
+                    <td className="py-1.5 text-right font-mono">{eur(row.read)}</td>
+                    <td className="py-1.5 text-right font-mono">{eur(row.rebuilt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
           {parsed.warnings.map((warning) => (
             <div key={warning} className="mt-2.5">
               <InfoNotice>{warning}</InfoNotice>
@@ -179,6 +221,8 @@ export function ImportDialog({ onClose, onImported, onManual }) {
               disabled={step.name === 'reading'}
               onClick={() => {
                 setProvider(option.id)
+                setDni('')
+                setPassword('')
                 if (parse.error) startOver()
               }}
               className="choice"
@@ -188,7 +232,50 @@ export function ImportDialog({ onClose, onImported, onManual }) {
           ))}
         </div>
 
-        <div className="label mt-5 mb-2.5">2 · El PDF</div>
+        {asksDni(step, provider) && (
+          <form onSubmit={submitDni} className="mt-5 flex flex-col gap-3" autoComplete="off">
+            <div className="label">2 · DNI del titular</div>
+            <div className="rounded-control border border-line-strong bg-surface-2 px-3.5 py-3 text-[12.5px] leading-normal text-ink-2">
+              <p className="font-medium text-ink">Las facturas de DISA vienen protegidas con el DNI del titular.</p>
+              <p className="mt-1.5">
+                Lo usamos <strong className="font-medium text-ink">sólo para abrir este PDF, una vez</strong>. No se guarda en
+                ningún sitio: ni en tu cuenta, ni en la base de datos, ni en los registros del servidor, ni en este navegador.
+                En cuanto se lee la factura, el DNI se borra.
+              </p>
+            </div>
+            {step.name !== 'pickFile' && <ErrorNotice>{errorMessage(parse.error)}</ErrorNotice>}
+            <div className="flex items-end gap-2">
+              <Field
+                className="flex-1"
+                label="DNI o NIE del titular"
+                type={showDni ? 'text' : 'password'}
+                name="pdf-unlock-code"
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                maxLength={12}
+                placeholder="12345678Z"
+                data-1p-ignore="true"
+                data-lpignore="true"
+                value={dni}
+                onChange={(event) => setDni(event.target.value)}
+              />
+              <Button onClick={() => setShowDni((shown) => !shown)} aria-pressed={showDni} className="max-sm:min-h-[46px]">
+                {showDni ? 'Ocultar' : 'Mostrar'}
+              </Button>
+            </div>
+            {dni && !dniOk && (
+              <p className="text-[12px] leading-normal text-ink-3">Revisa los números y la letra: así no abre el PDF.</p>
+            )}
+            {file && (
+              <Button type="submit" variant="primary" disabled={!dniOk}>
+                Leer la factura
+              </Button>
+            )}
+          </form>
+        )}
+
+        <div className="label mt-5 mb-2.5">{provider === 'disa' ? '3' : '2'} · El PDF</div>
         <input
           ref={fileInput}
           type="file"
@@ -203,11 +290,11 @@ export function ImportDialog({ onClose, onImported, onManual }) {
         <div
           onDragOver={(event) => {
             event.preventDefault()
-            setDragging(!!provider)
+            setDragging(canPick)
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          className={`flex flex-col items-center gap-3 rounded-panel border border-dashed px-4 py-7 text-center ${dragging ? 'border-accent bg-accent-soft' : 'border-ink/30 bg-control'} ${provider ? '' : 'opacity-60'}`}
+          className={`flex flex-col items-center gap-3 rounded-panel border border-dashed px-4 py-7 text-center ${dragging ? 'border-accent bg-accent-soft' : 'border-ink/30 bg-control'} ${canPick ? '' : 'opacity-60'}`}
         >
           {step.name === 'reading' ? (
             <>
@@ -217,9 +304,13 @@ export function ImportDialog({ onClose, onImported, onManual }) {
           ) : (
             <>
               <div className="text-[13.5px] text-ink-2">
-                {provider ? 'Arrastra aquí el PDF o elígelo' : 'Elige primero la comercializadora'}
+                {!provider
+                  ? 'Elige primero la comercializadora'
+                  : canPick
+                    ? 'Arrastra aquí el PDF o elígelo'
+                    : 'Escribe primero el DNI del titular'}
               </div>
-              <Button variant="primary" disabled={!provider} onClick={() => fileInput.current?.click()}>
+              <Button variant="primary" disabled={!canPick} onClick={() => fileInput.current?.click()}>
                 Elegir PDF
               </Button>
               {file && <div className="font-mono text-[12px] text-ink-3">{file.name}</div>}
@@ -227,14 +318,17 @@ export function ImportDialog({ onClose, onImported, onManual }) {
           )}
         </div>
 
-        {asksPassword(step) && (
+        {asksPassword(step, provider) && (
           <form onSubmit={submitPassword} className="mt-3.5 flex flex-col gap-3">
             <Field
               label="Contraseña del PDF"
               type="password"
               autoComplete="off"
               autoFocus
-              hint="Sólo se usa para abrir el archivo; no se guarda. Suele ser el NIF del titular."
+              name="pdf-unlock-code"
+              data-1p-ignore="true"
+              data-lpignore="true"
+              hint="Sólo se usa para abrir este PDF, una vez. No se guarda en ningún sitio y se borra en cuanto se lee la factura."
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
@@ -254,8 +348,10 @@ export function ImportDialog({ onClose, onImported, onManual }) {
                     size="sm"
                     onClick={() => {
                       setProvider(step.detected)
-                      // Si ya se había escrito la contraseña para abrirlo, se reutiliza
-                      read(file, step.detected, password || undefined)
+                      // La contraseña o el DNI ya se borraron al enviarlos: no se reutilizan con otro lector.
+                      // Si es de DISA, se pide su DNI y se vuelve a leer el mismo PDF desde ahí.
+                      if (step.detected === 'disa') parse.reset()
+                      else read(file, step.detected)
                     }}
                   >
                     Leer como {providerName(step.detected)}

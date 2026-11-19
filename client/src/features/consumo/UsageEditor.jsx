@@ -41,7 +41,7 @@ function Preview({ contract, device, date, start, hours }) {
         <div className="mt-2 font-mono text-[17px] leading-none">{kwh(usageKwh(device.watts, hours))}</div>
       </div>
       <div className={tile}>
-        <div className="label">Coste{contract.mode !== 'fija' && ` · ${BAND_NAME[bandAt(date, Math.floor(start))]}`}</div>
+        <div className="label">Coste estimado{contract.mode !== 'fija' && ` · ${BAND_NAME[bandAt(date, Math.floor(start))]}`}</div>
         <div className="mt-2 font-mono text-[17px] leading-none">{eur(usageCost(contract, device.watts, date, start, hours))}</div>
       </div>
     </div>

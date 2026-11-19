@@ -1,10 +1,11 @@
 import { NavLink, useNavigate } from 'react-router'
 import { useHousehold, useInvoices, useLogout } from '../../api/hooks'
 import { periodSummary } from '../../domain/aggregates'
-import { eur } from '../../domain/format'
+import { approxEur } from '../../domain/format'
 import { estimateInvoice, oneOffFees } from '../../domain/invoice'
 import { datesBetween } from '../../domain/time'
 import { monthRange, todayISO } from '../../lib/dates'
+import { HouseholdLine } from './HouseholdLine'
 import { Brand, NavIcon } from './marks'
 import { ADMIN_NAV, NAV, PROFILE_NAV } from './nav'
 
@@ -37,7 +38,7 @@ function InvoiceGap({ invoice }) {
   const gap = invoice.total - estimateInvoice(home.contract, invoice.days, logged.byBand, oneOffFees(invoice)).total
   return (
     <div className="mt-2.5 border-t border-white/10 pt-2.5 text-[11.5px] leading-normal text-white/65">
-      última factura: {gap < -0.005 ? 'te pasas' : 'sin explicar'} {eur(Math.abs(gap))}
+      última factura: {gap < -0.005 ? 'te pasas' : 'sin explicar'} {approxEur(Math.abs(gap))}
     </div>
   )
 }
@@ -47,10 +48,10 @@ function MonthCard() {
   const { from, to } = monthRange(todayISO())
   const { home } = useHousehold(from, to)
   const invoices = useInvoices()
-  const cost = home ? eur(periodSummary(home, datesBetween(from, todayISO())).total.cost) : '— €'
+  const cost = home ? approxEur(periodSummary(home, datesBetween(from, todayISO())).total.cost) : '— €'
   return (
     <div className="rounded-panel bg-white/7 p-4 ring-1 ring-white/6 ring-inset">
-      <div className="label text-white/60">Mes en curso</div>
+      <div className="label text-white/60">Mes en curso · estimado</div>
       <div className="mt-2.5 font-mono text-[22px] leading-none tracking-[-0.01em] text-white">{cost}</div>
       <div className="mt-2 text-[11.5px] leading-normal text-white/65">apuntado hasta hoy, con los consumos fijos</div>
       {invoices.data?.[0] && <InvoiceGap invoice={invoices.data[0]} />}
@@ -70,9 +71,9 @@ export function Sidebar({ account }) {
   return (
     <aside className="on-ink flex flex-col bg-ink pt-6 pb-[22px] max-lg:pt-4 max-lg:pb-0 max-sm:hidden lg:sticky lg:top-0 lg:h-dvh">
       <div className="flex items-start justify-between px-[22px] pb-[26px] max-lg:pb-3">
-        <div>
+        <div className="min-w-0">
           <Brand tone="white" />
-          <div className="mt-2 font-mono text-[11px] text-white/55">casa · peaje 2.0TD</div>
+          <HouseholdLine className="mt-2 text-white/55" />
         </div>
         <div className="flex gap-2 lg:hidden">
           <NavLink to={PROFILE_NAV.to} className={signOutClass}>

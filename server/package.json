@@ -8,7 +8,8 @@
     "start": "node src/index.js",
     "test": "vitest run",
     "db:migrate": "node src/migrate.js",
-    "db:seed": "node src/seed.js"
+    "db:seed": "node src/seed.js",
+    "invoice:debug": "node scripts/invoice-debug.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

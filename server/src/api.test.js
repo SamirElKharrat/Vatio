@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { app } from './app.js'
 import { hashPassword, sessionStore } from './auth.js'
 import { sequelize } from './db.js'
@@ -358,6 +358,61 @@ describe('lectura del PDF de una factura', () => {
     expect(res.status).toBe(422)
     expect(res.body.code).toBe('not_a_pdf')
     expect((await ana.get('/api/invoices')).body.invoices).toHaveLength(before)
+  })
+})
+
+describe('el DNI que abre las facturas de DISA', () => {
+  // DNI de ejemplo con su letra bien puesta; no es de nadie
+  const DNI = '12345678Z'
+  const notAPdf = () => Buffer.from('no soy un pdf')
+
+  /** Tablas de la base en las que aparece un texto, buscándolo en cada fila entera */
+  async function tablesContaining(text) {
+    const [tables] = await sequelize.query(
+      `SELECT table_name AS name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`,
+    )
+    expect(tables.map((table) => table.name)).toEqual(expect.arrayContaining(['users', 'invoices', 'session']))
+    const found = []
+    for (const { name: table } of tables) {
+      const [[{ count }]] = await sequelize.query(`SELECT count(*)::int AS count FROM "${table}" t WHERE t::text ILIKE :text`, {
+        replacements: { text: `%${text}%` },
+      })
+      if (count > 0) found.push(table)
+    }
+    return found
+  }
+
+  it('sin DNI no intenta abrir el PDF', async () => {
+    const res = await ana.post('/api/invoices/parse').field('provider', 'disa').attach('file', notAPdf(), 'f.pdf')
+    expect(res.status).toBe(400)
+    expect(res.body.code).toBe('dni_needed')
+  })
+
+  it('rechaza un DNI con la letra mal sin repetirlo en la respuesta', async () => {
+    const res = await ana.post('/api/invoices/parse').field('provider', 'disa').field('dni', '12345678A').attach('file', notAPdf(), 'f.pdf')
+    expect(res.status).toBe(400)
+    expect(JSON.stringify(res.body)).not.toContain('12345678')
+  })
+
+  it('después de usarlo no queda ni en la base, ni en los registros, ni en la respuesta', async () => {
+    const logged = []
+    const spies = ['log', 'info', 'warn', 'error'].map((method) =>
+      vi.spyOn(console, method).mockImplementation((...args) => logged.push(args.map(String).join(' '))),
+    )
+    try {
+      const res = await ana.post('/api/invoices/parse').field('provider', 'disa').field('dni', DNI).attach('file', notAPdf(), 'f.pdf')
+      expect(res.status).toBe(422)
+      expect(res.body.code).toBe('not_a_pdf')
+      expect(JSON.stringify(res.body)).not.toContain(DNI)
+      expect(JSON.stringify(res.headers)).not.toContain(DNI)
+    } finally {
+      spies.forEach((spy) => spy.mockRestore())
+    }
+    expect(logged.filter((line) => line.includes(DNI))).toEqual([])
+    // Incluye la tabla de sesiones, que guarda lo que se mete en la sesión de cada cuenta.
+    // La búsqueda sí encuentra lo que está guardado: el correo de la cuenta sale en «users».
+    expect(await tablesContaining('ana@test.local')).toContain('users')
+    expect(await tablesContaining(DNI)).toEqual([])
   })
 })
 

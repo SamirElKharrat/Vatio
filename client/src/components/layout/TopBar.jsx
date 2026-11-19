@@ -1,12 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useHousehold, useLogout } from '../../api/hooks'
 import { periodSummary } from '../../domain/aggregates'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, kwh } from '../../domain/format'
 import { addDays, datesBetween, startOfWeek } from '../../domain/time'
 import { dayTitle, shiftMonth, todayISO, weekNumber } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { consumoPath, useSelectedDate } from '../../lib/useSelectedDate'
 import { SegmentedLinks } from '../ui/Segmented'
+import { HouseholdLine } from './HouseholdLine'
 import { Brand, Chevron, NavIcon } from './marks'
 import { ADMIN_NAV, NAV, PROFILE_NAV } from './nav'
 
@@ -46,9 +47,12 @@ export function TopBar() {
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-line bg-surface-2 px-8 py-3.5 max-lg:px-6 max-sm:px-4 max-sm:py-3">
-      <div className="flex w-full items-center justify-between sm:hidden">
-        <Brand />
-        <div className="flex gap-2">
+      <div className="flex w-full items-center justify-between gap-3 sm:hidden">
+        <div className="min-w-0">
+          <Brand />
+          <HouseholdLine className="mt-1 text-ink-3" />
+        </div>
+        <div className="flex flex-none gap-2">
           <Link
             to={PROFILE_NAV.to}
             aria-label={PROFILE_NAV.label}
@@ -71,7 +75,7 @@ export function TopBar() {
         <h1 className="text-[17px] font-medium tracking-[-0.01em] text-ink max-sm:sr-only">{title}</h1>
         <span className="font-mono text-[11.5px] text-ink-3 max-sm:hidden">
           semana {weekNumber(date)}
-          {totals && ` · ${kwh(totals.kwh)} · ${eur(totals.cost)}`}
+          {totals && ` · ${kwh(totals.kwh)} · ${approxEur(totals.cost)} estimado`}
         </span>
         {home && (
           <span className="rounded-[6px] bg-accent/10 px-2.5 py-[5px] font-mono text-[11px] leading-none text-accent-ink max-sm:hidden">

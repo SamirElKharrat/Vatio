@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { Stat, StatRow } from '../../components/ui/Stat'
 import { periodSummary } from '../../domain/aggregates'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, eur, kwh } from '../../domain/format'
 import { estimateInvoice } from '../../domain/invoice'
 import { datesBetween, weekdayOf } from '../../domain/time'
 import { dayTitle, monthRange, monthYearTitle, todayISO } from '../../lib/dates'
@@ -58,9 +58,9 @@ export function MonthView({ home, date }) {
         </div>
         <StatRow>
           <Stat label="Mes" value={kwh(month.total.kwh)} />
-          <Stat label="Coste" value={eur(month.total.cost)} />
-          <Stat label="Media diaria" value={eur(month.total.cost / days.length)} />
-          <Stat accent label="Día más caro" value={`Día ${Number(peak.date.slice(8))} · ${eur(peak.total.cost)}`} />
+          <Stat label="Coste estimado" value={eur(month.total.cost)} />
+          <Stat label="Media diaria · est." value={eur(month.total.cost / days.length)} />
+          <Stat accent label="Día más caro" value={`Día ${Number(peak.date.slice(8))} · ${approxEur(peak.total.cost)}`} />
         </StatRow>
       </div>
 
@@ -83,7 +83,7 @@ export function MonthView({ home, date }) {
               <Link
                 key={day.date}
                 to={consumoPath('dia', day.date)}
-                aria-label={`Abrir ${dayTitle(day.date)}: ${kwh(day.total.kwh, 1)}, ${eur(day.total.cost)}`}
+                aria-label={`Abrir ${dayTitle(day.date)}: ${kwh(day.total.kwh, 1)}, unos ${eur(day.total.cost)} estimados`}
                 aria-current={isToday ? 'date' : undefined}
                 className={`flex min-h-[76px] flex-col justify-between rounded-control border px-2.5 py-2 hover:border-ink/40 max-sm:min-h-[58px] max-sm:items-center max-sm:rounded-[8px] max-sm:px-0 max-sm:py-1.5 ${selected ? 'border-accent outline-2 -outline-offset-1 outline-accent' : future ? 'border-dashed border-line-strong' : 'border-line'}`}
                 style={{
@@ -105,6 +105,7 @@ export function MonthView({ home, date }) {
                     {kwh(day.total.kwh, 1)}
                   </span>
                   <span className="font-mono text-[12.5px] font-medium max-sm:text-[10.5px] max-sm:font-normal">
+                    <span className="max-sm:hidden">≈ </span>
                     {eur(day.total.cost)}
                   </span>
                 </span>

@@ -220,7 +220,58 @@ describe('factura de DISA de octubre, con los kWh sin decimales', () => {
   })
 })
 
+/** Los renglones de un fixture con el texto de algunos cambiado, como si la factura viniera así */
+function withText(rows, replacements) {
+  return rows.map((original) => {
+    const replaced = replacements.find(([from]) => original.text.includes(from))
+    if (!replaced) return original
+    const [from, to] = replaced
+    const items = original.items.map((item) => ({ ...item, text: item.text.replace(from, to) }))
+    return { ...original, items, text: items.map((item) => item.text).join(' ') }
+  })
+}
+
+describe('variaciones que no rompen el lector de Endesa', () => {
+  it('acepta un periodo de un solo día', () => {
+    const rows = withText(fixture('endesa'), [['a 03/09/2026 (30 días)', 'a 04/08/2026 (1 día)']])
+    expect(parseEndesa(rows)).toMatchObject({ from: '2026-08-04', to: '2026-08-04', days: 1 })
+  })
+
+  it('con dos precios de energía en el periodo usa la media ponderada por los kWh y avisa', () => {
+    const rows = withText(fixture('endesa'), [['44,717 kWh x 0,176956', '44,717 kWh x 0,200000']])
+    const parsed = parseEndesa(rows)
+    const expected = (220.43 * 0.176956 + 44.717 * 0.2) / (220.43 + 44.717)
+    expect(parsed.contract.fixedPrice).toBeCloseTo(expected, 6)
+    expect(parsed.contract.prices.valle).toBe(parsed.contract.fixedPrice)
+    expect(parsed.warnings).toContain('La factura trae varios precios de energía; se ha usado el precio medio. Revisa el precio en el contrato.')
+  })
+})
+
+/** Un PDF de una página en blanco, sin texto: como una factura escaneada */
+function blankPdf() {
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] >>',
+  ]
+  let pdf = '%PDF-1.4\n'
+  const offsets = objects.map((object, i) => {
+    const offset = pdf.length
+    pdf += `${i + 1} 0 obj\n${object}\nendobj\n`
+    return offset
+  })
+  const xref = pdf.length
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
+  pdf += offsets.map((offset) => `${String(offset).padStart(10, '0')} 00000 n \n`).join('')
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`
+  return new TextEncoder().encode(pdf)
+}
+
 describe('un PDF que no es la factura esperada', () => {
+  it('dice que parece escaneado si el PDF no trae texto', async () => {
+    await expect(parseInvoicePdf(blankPdf(), 'endesa')).rejects.toMatchObject({ status: 422, code: 'scanned_pdf' })
+  })
+
   it('dice qué dato falta si el texto no tiene la forma de la factura', () => {
     expect(() => parseEndesa([row('Hola')])).toThrow('el periodo de facturación')
     expect(() => parseDisa([row('Hola')])).toThrow('el periodo de consumo')

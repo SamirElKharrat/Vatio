@@ -3,7 +3,7 @@ import { Chevron } from '../../components/layout/marks'
 import { useHousehold } from '../../api/hooks'
 import { periodSummary } from '../../domain/aggregates'
 import { usageCost, usageKwh } from '../../domain/cost'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, eur, kwh } from '../../domain/format'
 import { bandAt, dayBands } from '../../domain/tariff'
 import { addDays, datesBetween, formatHM, startOfWeek } from '../../domain/time'
 import { dayTitle, monthRange, monthTitle, todayISO } from '../../lib/dates'
@@ -61,7 +61,7 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
             </div>
           </div>
           <div className="text-right">
-            <div className="label text-white/60">Coste</div>
+            <div className="label text-white/60">Coste estimado</div>
             <div className="mt-2 font-mono text-[22px] leading-none text-[oklch(0.84_0.12_58)]">{eur(day.cost)}</div>
           </div>
         </div>
@@ -100,7 +100,7 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
         </div>
         <div className="mt-3.5 flex justify-between border-t border-white/12 pt-3.5 font-mono text-[12px] text-white/70">
           <span>más los fijos (24 h)</span>
-          <span>{eur(day.fixed.cost)}</span>
+          <span>{approxEur(day.fixed.cost)}</span>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
       >
         <span className="label">{monthTitle(date)}</span>
         <span className="flex-1 font-mono text-[13.5px]">{month ? kwh(month.kwh) : '— kWh'}</span>
-        <span className="font-mono text-[13.5px] font-medium text-accent-ink">{month ? eur(month.cost) : '— €'}</span>
+        <span className="font-mono text-[13.5px] font-medium text-accent-ink">{month ? approxEur(month.cost) : '— €'}</span>
         <Chevron className="size-3.5 text-ink-4" />
       </Link>
 
@@ -146,7 +146,7 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
         <div className="mt-3.5 flex items-center gap-2.5 rounded-[13px] border border-gap-line bg-gap px-[15px] py-[13px]">
           <span className="font-mono text-[15px] font-medium text-gap-ink">↓</span>
           <span className="flex-1 text-[12.5px] leading-snug">
-            Con todo el consumo en valle te ahorrarías <b>{eur(day.valleSaving)}</b> este día
+            Con todo el consumo en valle te ahorrarías <b>{approxEur(day.valleSaving)}</b> este día
           </span>
         </div>
       )}
@@ -182,7 +182,7 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
             </span>
             <span className="flex flex-none flex-col items-end gap-[5px]">
               <span className="font-mono text-[14.5px] font-medium">
-                {eur(usageCost(contract, device.watts, date, usage.start, usage.hours))}
+                {approxEur(usageCost(contract, device.watts, date, usage.start, usage.hours))}
               </span>
               {!isFija && (
                 <span

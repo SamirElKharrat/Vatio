@@ -54,14 +54,14 @@ function parse(text, decimals, min, max) {
  * Texto editable en línea. Igual que `NumberInput`, mientras se escribe manda lo tecleado:
  * si el campo dependiera sólo del valor guardado, al escribir deprisa se perderían letras.
  */
-export function TextInput({ value, onCommit, label, placeholder, maxLength, className = '' }) {
+export function TextInput({ value, onCommit, label, placeholder, maxLength, className = '', required = true }) {
   const [draft, setDraft] = useState(null)
   const shown = draft ?? value
   return (
     <input
       type="text"
       aria-label={label}
-      aria-invalid={shown.trim() === ''}
+      aria-invalid={required && shown.trim() === ''}
       placeholder={placeholder}
       maxLength={maxLength}
       value={shown}

@@ -25,14 +25,33 @@ export async function parseInvoicePdf(data, provider, password) {
     rows = await readPdfRows(data, password)
   } catch (error) {
     if (error instanceof PdfPasswordError) {
-      throw error.reason === 'needed'
-        ? new HttpError(422, 'Este PDF está protegido. Escribe su contraseña para leerlo.', undefined, 'password_needed')
-        : new HttpError(422, 'La contraseña del PDF no es correcta.', undefined, 'password_incorrect')
+      // Las de DISA se abren con el DNI del titular: se dice así para que se sepa qué escribir
+      const byDni = provider === 'disa'
+      if (error.reason === 'needed') {
+        const message = byDni
+          ? 'Las facturas de DISA se abren con el DNI del titular. Escríbelo para leerla.'
+          : 'Este PDF está protegido. Escribe su contraseña para leerlo.'
+        throw new HttpError(422, message, undefined, 'password_needed')
+      }
+      const message = byDni
+        ? 'Ese DNI no abre el PDF. Comprueba que es el del titular del contrato.'
+        : 'La contraseña del PDF no es correcta.'
+      throw new HttpError(422, message, undefined, 'password_incorrect')
     }
     if (error instanceof PdfUnreadableError) {
       throw new HttpError(422, 'El archivo no es un PDF que se pueda leer.', undefined, 'not_a_pdf')
     }
     throw error
+  }
+
+  // Un PDF hecho de imágenes (una factura escaneada o una foto) no trae texto que leer
+  if (rows.length === 0) {
+    throw new HttpError(
+      422,
+      'Este PDF no tiene texto: parece una factura escaneada o una foto. Descarga el PDF original desde la web de tu comercializadora o escribe los datos a mano.',
+      undefined,
+      'scanned_pdf',
+    )
   }
 
   const detected = detectProvider(rows)

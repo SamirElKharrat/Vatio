@@ -3,6 +3,7 @@ import multer from 'multer'
 import { z } from 'zod'
 import { currentUser } from '../auth.js'
 import { sequelize } from '../db.js'
+import { isValidDni, normalizeDni } from '../dni.js'
 import { contractJson, invoiceJson } from '../household.js'
 import { dateSchema, HttpError, idParam, parse } from '../http.js'
 import { parseInvoicePdf } from '../invoices/index.js'
@@ -127,13 +128,39 @@ async function ownInvoice(userId, id) {
 
 // El PDF se lee en memoria y se descarta: sólo viajan de vuelta los datos encontrados
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1 } })
-const parseSchema = z.object({ provider: z.enum(['endesa', 'disa']), password: z.string().max(200).optional() })
+// El mensaje de error no repite lo escrito: el DNI no vuelve en la respuesta ni aunque esté mal
+const dniSchema = z
+  .string()
+  .max(20)
+  .transform(normalizeDni)
+  .refine(isValidDni, 'El DNI o NIE no es válido. Revisa los números y la letra.')
+const parseSchema = z.object({
+  provider: z.enum(['endesa', 'disa']),
+  password: z.string().max(200).optional(),
+  dni: dniSchema.optional(),
+})
 
-/** Lee una factura en PDF y devuelve lo que ha encontrado, sin guardar nada */
+/**
+ * Lee una factura en PDF y devuelve lo que ha encontrado, sin guardar nada.
+ * Las de DISA vienen protegidas con el DNI del titular: se usa para abrir el PDF en esta misma
+ * petición y no se guarda, no se registra y no vuelve en la respuesta.
+ */
 invoicesRouter.post('/parse', upload.single('file'), async (req, res) => {
-  const { provider, password } = parse(parseSchema, req.body)
-  if (!req.file) throw new HttpError(400, 'Elige el PDF de la factura')
-  res.json({ parsed: await parseInvoicePdf(new Uint8Array(req.file.buffer), provider, password) })
+  try {
+    const { provider, password, dni } = parse(parseSchema, req.body)
+    if (!req.file) throw new HttpError(400, 'Elige el PDF de la factura')
+    if (provider === 'disa' && !dni) {
+      throw new HttpError(400, 'Las facturas de DISA se abren con el DNI del titular. Escríbelo para leerla.', undefined, 'dni_needed')
+    }
+    const secret = provider === 'disa' ? dni : password
+    res.json({ parsed: await parseInvoicePdf(new Uint8Array(req.file.buffer), provider, secret) })
+  } finally {
+    // Sólo hacían falta para abrir el PDF: no se dejan en la petición para nada que venga después
+    if (req.body) {
+      delete req.body.dni
+      delete req.body.password
+    }
+  }
 })
 
 invoicesRouter.get('/', async (_req, res) => {

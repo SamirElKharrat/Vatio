@@ -4,8 +4,9 @@ import { useDeviceCrud, useHousehold, useUpdateDevice } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
 import { ErrorNotice, Loading } from '../../components/ui/Notice'
 import { NumberInput } from '../../components/ui/NumberInput'
+import { SectionHeader } from '../../components/ui/SectionHeader'
 import { periodSummary } from '../../domain/aggregates'
-import { eur, kwh } from '../../domain/format'
+import { approxEur, kwh } from '../../domain/format'
 import { addDays, datesBetween, formatHM, parseHM, startOfWeek } from '../../domain/time'
 import { monthRange, todayISO } from '../../lib/dates'
 import { firstFreeColor } from '../../lib/palette'
@@ -73,11 +74,17 @@ export function AparatosPage() {
 
   return (
     <div className="max-w-[1120px]">
-      <h2 className="page-title">Aparatos</h2>
-      <p className="page-lead mt-2">
+      <SectionHeader
+        title="Aparatos"
+        action={
+          <Button variant="primary" className="max-sm:min-h-[52px] max-sm:text-[15px]" onClick={() => setEditing('new')}>
+            + Añadir aparato
+          </Button>
+        }
+      >
         Escribe los vatios exactos de cada aparato (los de la etiqueta) y todas las cuentas se recalculan al instante.
         Usos, kWh y coste son de esta semana; «Mes» es el mes en curso.
-      </p>
+      </SectionHeader>
 
       {inline.error !== null && (
         <div className="mt-4">
@@ -125,13 +132,13 @@ export function AparatosPage() {
                     />
                   </div>
                   <span className={`font-mono text-[13px] ${totals.cost ? 'font-medium text-ink' : 'text-ink-4'}`}>
-                    {eur(totals.cost)}
+                    {approxEur(totals.cost)}
                   </span>
                 </div>
                 <div className="mt-2.5 flex items-center justify-between gap-3">
                   <span className={`font-mono text-[12px] leading-relaxed ${totals.uses ? 'text-ink-2' : 'text-ink-3'}`}>
                     {totals.uses === 1 ? '1 uso' : `${totals.uses} usos`} · {kwh(totals.kwh)} · mes{' '}
-                    {eur(monthTotals.byDevice[device.id]?.cost ?? 0)}
+                    {approxEur(monthTotals.byDevice[device.id]?.cost ?? 0)}
                   </span>
                   <Button size="sm" onClick={() => setEditing(device)} aria-label={`Editar ${device.name}`}>
                     Editar
@@ -151,8 +158,8 @@ export function AparatosPage() {
               <div className="text-center">Potencia</div>
               <div className="text-right">Usos</div>
               <div className="text-right">kWh</div>
-              <div className="text-right">Mes</div>
-              <div className="text-right">Coste semana</div>
+              <div className="text-right">Mes (est.)</div>
+              <div className="text-right">Coste semana (est.)</div>
               <div />
             </div>
 
@@ -185,7 +192,7 @@ export function AparatosPage() {
                   </div>
                   <div className={`text-right font-mono text-[12.5px] ${dim(totals.uses) || 'text-ink-2'}`}>{totals.uses}</div>
                   <div className={`text-right font-mono text-[12.5px] ${dim(totals.kwh)}`}>{kwh(totals.kwh)}</div>
-                  <div className={`text-right font-mono text-[12.5px] ${dim(monthCost) || 'text-ink-2'}`}>{eur(monthCost)}</div>
+                  <div className={`text-right font-mono text-[12.5px] ${dim(monthCost) || 'text-ink-2'}`}>{approxEur(monthCost)}</div>
                   <div className="flex items-center gap-3">
                     <div className="h-1.5 flex-1 overflow-hidden rounded-swatch bg-ink/8">
                       <div
@@ -194,7 +201,7 @@ export function AparatosPage() {
                       />
                     </div>
                     <span className={`w-[60px] text-right font-mono text-[13px] ${dim(totals.cost) || 'font-medium'}`}>
-                      {eur(totals.cost)}
+                      {approxEur(totals.cost)}
                     </span>
                   </div>
                   <div className="text-right">
@@ -208,10 +215,6 @@ export function AparatosPage() {
           </div>
         </div>
       )}
-
-      <Button className="mt-6 max-sm:min-h-[52px] max-sm:w-full max-sm:text-[15px]" onClick={() => setEditing('new')}>
-        + Añadir aparato
-      </Button>
 
       {editing && (
         <ItemEditor
