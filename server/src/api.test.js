@@ -440,6 +440,36 @@ describe('duración que se propone al apuntar', () => {
   })
 })
 
+describe('modo kWh por uso', () => {
+  it('el aparato guarda sus kWh por uso y no los pierde al cambiar otra cosa', async () => {
+    const lavadora = await deviceNamed(ana, 'Lavadora')
+    const set = await ana.patch(`/api/devices/${lavadora.id}`).send({ kwhPerUse: 0.9 })
+    expect(set.body.device.kwhPerUse).toBe(0.9)
+    const renamed = await ana.patch(`/api/devices/${lavadora.id}`).send({ watts: 2000 })
+    expect(renamed.body.device).toMatchObject({ watts: 2000, kwhPerUse: 0.9 })
+    expect((await ana.patch(`/api/devices/${lavadora.id}`).send({ kwhPerUse: 0 })).status).toBe(400)
+
+    const back = await ana.patch(`/api/devices/${lavadora.id}`).send({ kwhPerUse: null, watts: lavadora.watts })
+    expect(back.body.device.kwhPerUse).toBeNull()
+  })
+
+  it('cada uso puede llevar sus kWh y un comentario opcional', async () => {
+    const lavadora = await deviceNamed(ana, 'Lavadora')
+    const plain = await ana.post('/api/usages').send({ deviceId: lavadora.id, date: '2026-10-07', start: 9, hours: 1 })
+    expect(plain.body.usage).toMatchObject({ kwh: null, note: '' })
+
+    const eco = await ana.post('/api/usages').send({ deviceId: lavadora.id, date: '2026-10-08', start: 9, hours: 1.5, kwh: 0.6, note: '  Algodón 40° eco  ' })
+    expect(eco.body.usage).toMatchObject({ kwh: 0.6, note: 'Algodón 40° eco' })
+
+    // Moverlo no borra ni los kWh ni el comentario
+    const moved = await ana.patch(`/api/usages/${eco.body.usage.id}`).send({ start: 10 })
+    expect(moved.body.usage).toMatchObject({ start: 10, kwh: 0.6, note: 'Algodón 40° eco' })
+
+    expect((await ana.post('/api/usages').send({ deviceId: lavadora.id, date: '2026-10-09', start: 9, hours: 1, note: 'x'.repeat(121) })).status).toBe(400)
+    for (const res of [plain, eco]) await ana.delete(`/api/usages/${res.body.usage.id}`)
+  })
+})
+
 describe('consulta de usos por fechas', () => {
   it('rechaza un periodo al revés o de más de 400 días', async () => {
     expect((await ana.get('/api/usages?from=2026-09-01&to=2026-11-30')).status).toBe(200)

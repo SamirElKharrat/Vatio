@@ -1,5 +1,5 @@
 import { addDays as addDaysISO, format, parseISO } from 'date-fns'
-import { usageCost, usageKwh, usageKwhByBand } from './cost'
+import { usageCost, usageKwh, usageKwhByBand, usageWatts } from './cost'
 import { usagesFor } from './routines'
 import { datesBetween, formatHM } from './time'
 
@@ -36,8 +36,9 @@ const ORIGIN = { manual: 'Manual', routine: 'Rutina', fixed: 'Fijo' }
 export function consumptionRows(home, from, to) {
   const devices = new Map(home.devices.map((device) => [device.id, device]))
   const rows = []
-  const add = (date, name, origin, watts, start, hours) => {
-    const bands = usageKwhByBand(watts, date, start, hours)
+  // `watts` es la potencia del aparato; `energyWatts`, con la que se calcula la energía (kWh por uso)
+  const add = (date, name, origin, watts, start, hours, energyWatts = watts, note = '') => {
+    const bands = usageKwhByBand(energyWatts, date, start, hours)
     rows.push({
       date,
       name,
@@ -46,8 +47,9 @@ export function consumptionRows(home, from, to) {
       hours,
       watts,
       bands,
-      kwh: usageKwh(watts, hours),
-      cost: usageCost(home.contract, watts, date, start, hours),
+      kwh: usageKwh(energyWatts, hours),
+      cost: usageCost(home.contract, energyWatts, date, start, hours),
+      note,
     })
   }
 
@@ -56,7 +58,8 @@ export function consumptionRows(home, from, to) {
     for (const usage of usages) {
       const device = devices.get(usage.deviceId)
       if (!device) continue
-      add(date, device.name, usage.routineId ? ORIGIN.routine : ORIGIN.manual, device.watts, usage.start, usage.hours)
+      const origin = usage.routineId ? ORIGIN.routine : ORIGIN.manual
+      add(date, device.name, origin, device.watts, usage.start, usage.hours, usageWatts(device, usage), usage.note ?? '')
     }
     for (const load of home.fixedLoads) add(date, load.name, ORIGIN.fixed, load.watts, 0, 24)
   }
@@ -76,6 +79,7 @@ const HEADER = [
   'kWh valle',
   'kWh total',
   'Coste estimado (€)',
+  'Comentario',
 ]
 
 /** Cifra con coma decimal, como la espera Excel en español */
@@ -106,6 +110,7 @@ export function toCsv(rows) {
     decimal(row.bands.valle, 3),
     decimal(row.kwh, 3),
     decimal(row.cost, 4),
+    row.note ?? '',
   ])]
   return '﻿' + lines.map((line) => line.map(field).join(';')).join('\r\n') + '\r\n'
 }

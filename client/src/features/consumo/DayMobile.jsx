@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { Chevron } from '../../components/layout/marks'
 import { useHousehold } from '../../api/hooks'
 import { periodSummary } from '../../domain/aggregates'
-import { usageCost, usageKwh } from '../../domain/cost'
+import { usageCost, usageKwh, usageWatts } from '../../domain/cost'
 import { approxEur, eur, kwh } from '../../domain/format'
 import { powerProfile } from '../../domain/power'
 import { bandAt, dayBands } from '../../domain/tariff'
@@ -210,12 +210,13 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
               <span className="block truncate text-[15px]">{device.name}</span>
               <span className="mt-1 block truncate font-mono text-[12px] text-ink-3">
                 {usage.routineId && '⟳ '}
-                {formatHM(usage.start)}–{formatHM(usage.start + usage.hours)} · {kwh(usageKwh(device.watts, usage.hours))}
+                {formatHM(usage.start)}–{formatHM(usage.start + usage.hours)} · {kwh(usageKwh(usageWatts(device, usage), usage.hours))}
               </span>
+              {usage.note && <span className="mt-0.5 block truncate text-[12px] text-ink-3">{usage.note}</span>}
             </span>
             <span className="flex flex-none flex-col items-end gap-[5px]">
               <span className="font-mono text-[14.5px] font-medium">
-                {approxEur(usageCost(contract, device.watts, date, usage.start, usage.hours))}
+                {approxEur(usageCost(contract, usageWatts(device, usage), date, usage.start, usage.hours))}
               </span>
               {!isFija && (
                 <span

@@ -12,13 +12,18 @@ const nameSchema = z.string().trim().min(1, 'Falta el nombre').max(80)
 
 export const devicesRouter = Router()
 
-const deviceSchema = z.object({
+const deviceShape = {
   name: nameSchema,
   watts: wattsSchema,
   // En cuartos de hora, como los usos que se proponen con ella
   defaultHours: z.number().min(0.25).max(24).refine(quarter, 'La duración debe ir en cuartos de hora'),
   color: colorSchema,
-})
+  // Modo «kWh por uso»: lo que gasta cada uso; `null` vuelve a calcular con los vatios
+  kwhPerUse: z.number().gt(0, 'Los kWh por uso tienen que ser más de 0').max(100).nullable(),
+}
+// El valor por defecto va sólo al crear: en un cambio parcial borraría los kWh que no se envían
+const deviceSchema = z.object({ ...deviceShape, kwhPerUse: deviceShape.kwhPerUse.default(null) })
+const deviceUpdateSchema = z.object(deviceShape).partial()
 
 devicesRouter.get('/', async (_req, res) => {
   const devices = await Device.findAll({ where: { userId: currentUser(res).id }, order: [['createdAt', 'ASC']] })
@@ -38,7 +43,7 @@ async function ownDevice(userId, id) {
 }
 
 devicesRouter.patch('/:id', async (req, res) => {
-  const data = parse(deviceSchema.partial(), req.body)
+  const data = parse(deviceUpdateSchema, req.body)
   const device = await ownDevice(currentUser(res).id, req.params.id)
   await device.update(data)
   res.json({ device: deviceJson(device) })

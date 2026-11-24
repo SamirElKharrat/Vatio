@@ -6,9 +6,10 @@ import { Button } from '../../components/ui/Button'
 import { Field } from '../../components/ui/Field'
 import { Modal } from '../../components/ui/Modal'
 import { ErrorNotice } from '../../components/ui/Notice'
-import { usageCost, usageKwh } from '../../domain/cost'
+import { usageCost, usageKwh, usageWatts } from '../../domain/cost'
 import { eur, kwh } from '../../domain/format'
 import { bandAt, dayBands } from '../../domain/tariff'
+import { parseDecimal } from '../../domain/power'
 import { formatHM, parseRange, QUARTER } from '../../domain/time'
 import { DeviceEditor } from '../aparatos/DeviceEditor'
 import { firstFreeSlot, hasOverlap } from '../../domain/usages'
@@ -32,19 +33,44 @@ function durationLabel(hours) {
   return [whole ? `${whole} h` : '', minutes ? `${minutes} min` : ''].filter(Boolean).join(' ')
 }
 
-/** Lo que gasta y cuesta el uso con las horas elegidas */
-function Preview({ contract, device, date, start, hours }) {
+/** Lo que gasta y cuesta el uso con las horas elegidas (y sus kWh, si el aparato va por uso) */
+function Preview({ contract, device, date, start, hours, kwh: usageKwhValue }) {
   const tile = 'flex-1 rounded-[13px] bg-surface-2 px-[15px] py-3'
+  const watts = usageWatts(device, { hours, kwh: usageKwhValue })
   return (
     <div className="mt-4 flex gap-2.5">
       <div className={tile}>
         <div className="label">Consumo</div>
-        <div className="mt-2 font-mono text-[17px] leading-none">{kwh(usageKwh(device.watts, hours))}</div>
+        <div className="mt-2 font-mono text-[17px] leading-none">{kwh(usageKwh(watts, hours))}</div>
       </div>
       <div className={tile}>
         <div className="label">Coste estimado{contract.mode !== 'fija' && ` · ${BAND_NAME[bandAt(date, Math.floor(start))]}`}</div>
-        <div className="mt-2 font-mono text-[17px] leading-none">{eur(usageCost(contract, device.watts, date, start, hours))}</div>
+        <div className="mt-2 font-mono text-[17px] leading-none">{eur(usageCost(contract, watts, date, start, hours))}</div>
       </div>
+    </div>
+  )
+}
+
+const kwhText = (value) => (value ? String(value).replace('.', ',') : '')
+
+/**
+ * Para aparatos en modo «kWh por uso»: lo que gastó este uso (relleno con lo del aparato) y un
+ * comentario opcional con el ciclo o programa.
+ */
+function PerUseFields({ kwhValue, onKwh, note, onNote }) {
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      <Field inline mono label="Este uso (kWh)" inputMode="decimal" placeholder="0,9" value={kwhValue} onChange={(event) => onKwh(event.target.value)} />
+      <p className="-mt-1.5 text-[12px] leading-normal text-ink-3 sm:pl-[122px]">kWh que ha gastado este uso. Cámbialo si has usado otro programa.</p>
+      <Field
+        inline
+        label="Comentario (opcional)"
+        placeholder="Algodón 40° eco"
+        maxLength={120}
+        value={note}
+        onChange={(event) => onNote(event.target.value)}
+      />
+      <p className="-mt-1.5 text-[12px] leading-normal text-ink-3 sm:pl-[122px]">Qué ciclo o programa has usado. Se puede dejar en blanco.</p>
     </div>
   )
 }
@@ -103,6 +129,15 @@ export function UsageEditor({ target, date, devices, allDevices = devices, contr
   })
   const [problem, setProblem] = useState('')
   const [creatingDevice, setCreatingDevice] = useState(false)
+  // Modo «kWh por uso»: los kWh de este uso y un comentario opcional
+  const deviceOf = (id) => allDevices.find((item) => item.id === id)
+  const [usageKwhText, setUsageKwhText] = useState(() =>
+    kwhText(editing?.kwh ?? deviceOf(target.mode === 'new' ? target.deviceId : target.usage.deviceId)?.kwhPerUse),
+  )
+  const [note, setNote] = useState(editing?.note ?? '')
+  const selected = deviceOf(deviceId)
+  const perUse = !routine && !!selected?.kwhPerUse
+  const typedKwh = perUse ? parseDecimal(usageKwhText) : null
 
   const serverError = create.error ?? update.error ?? override.error
 
@@ -122,6 +157,15 @@ export function UsageEditor({ target, date, devices, allDevices = devices, contr
   function pickDevice(id) {
     setDeviceId(id)
     setProblem('')
+    // Al cambiar de aparato se proponen sus kWh por uso
+    setUsageKwhText(kwhText(deviceOf(id)?.kwhPerUse))
+  }
+
+  /** kWh y comentario que se guardan: sólo para aparatos por uso; si son los del aparato, no se fijan */
+  function perUseFields() {
+    if (!perUse) return { kwh: null, note: '' }
+    const value = typedKwh && typedKwh !== selected.kwhPerUse ? typedKwh : null
+    return { kwh: value, note: note.trim() }
   }
 
   function submit(event) {
@@ -132,10 +176,11 @@ export function UsageEditor({ target, date, devices, allDevices = devices, contr
     if (hasOverlap(dayUsages, deviceId, range.start, range.hours, target.usage?.id)) {
       return setProblem('Ya hay un uso de este aparato en esa franja')
     }
+    if (perUse && !typedKwh) return setProblem('Escribe los kWh de este uso, por ejemplo 0,9')
     setProblem('')
     if (routine) override.mutate({ id: routine.id, dates: target.dates, ...range }, { onSuccess: onClose })
-    else if (editing) update.update(editing.id, { deviceId, ...range }, { onSuccess: onClose })
-    else create.mutate({ deviceId, date, ...range }, { onSuccess: onClose })
+    else if (editing) update.update(editing.id, { deviceId, ...range, ...perUseFields() }, { onSuccess: onClose })
+    else create.mutate({ deviceId, date, ...range, ...perUseFields() }, { onSuccess: onClose })
   }
 
   const week = target.dates?.length > 1
@@ -259,7 +304,8 @@ export function UsageEditor({ target, date, devices, allDevices = devices, contr
             />
           </div>
 
-          {device && <Preview contract={contract} device={device} date={date} start={start} hours={hours} />}
+          {perUse && <PerUseFields kwhValue={usageKwhText} onKwh={setUsageKwhText} note={note} onNote={setNote} />}
+          {device && <Preview contract={contract} device={device} date={date} start={start} hours={hours} kwh={typedKwh} />}
 
           {actions}
         </form>
@@ -303,8 +349,9 @@ export function UsageEditor({ target, date, devices, allDevices = devices, contr
         <p className="mt-2 text-[12px] leading-normal text-ink-3">
           Escribe la hora como 19:30 · se redondea a cuartos de hora
         </p>
+        {perUse && <PerUseFields kwhValue={usageKwhText} onKwh={setUsageKwhText} note={note} onNote={setNote} />}
         {typedDevice && !('error' in typed) && (
-          <Preview contract={contract} device={typedDevice} date={date} start={typed.start} hours={typed.hours} />
+          <Preview contract={contract} device={typedDevice} date={date} start={typed.start} hours={typed.hours} kwh={typedKwh} />
         )}
 
         {actions}

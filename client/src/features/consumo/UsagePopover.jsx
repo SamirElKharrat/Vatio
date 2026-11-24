@@ -4,7 +4,7 @@ import { usePauseRoutine, useSkipRoutine } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
 import { ErrorNotice, InfoNotice } from '../../components/ui/Notice'
-import { usageCost, usageKwh } from '../../domain/cost'
+import { usageCost, usageKwh, usageWatts } from '../../domain/cost'
 import { approxEur, kwh } from '../../domain/format'
 import { formatHM } from '../../domain/time'
 import { deviceColor } from './colors'
@@ -16,12 +16,14 @@ export function UsagePopover({ usage, device, routine, weekDays, contract, onEdi
   const navigate = useNavigate()
 
   const range = `${formatHM(usage.start)} – ${formatHM(usage.start + usage.hours)}`
-  const detail = `${device.watts} W · ${kwh(usageKwh(device.watts, usage.hours))} · ${approxEur(usageCost(contract, device.watts, usage.date, usage.start, usage.hours))}`
+  const watts = usageWatts(device, usage)
+  const detail = `${device.watts} W · ${kwh(usageKwh(watts, usage.hours))} · ${approxEur(usageCost(contract, watts, usage.date, usage.start, usage.hours))}`
   const error = skip.error ?? pause.error
 
   return (
     <Modal open onClose={onClose} title={device.name} aside={range} swatch={deviceColor(device.color)} width={410}>
       <div className="mt-2.5 font-mono text-[12.5px] text-ink-2">{detail}</div>
+      {usage.note && <div className="mt-1.5 text-[13px] text-ink-2">{usage.note}</div>}
 
       {routine ? (
         <>

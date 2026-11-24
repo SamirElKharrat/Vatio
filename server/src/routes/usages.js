@@ -8,8 +8,17 @@ import { Device, Usage } from '../models.js'
 
 export const usagesRouter = Router()
 
-const usageShape = { deviceId: z.uuid(), date: dateSchema, ...rangeShape }
-const createSchema = z.object(usageShape).refine(withinDay, withinDayMessage)
+const usageShape = {
+  deviceId: z.uuid(),
+  date: dateSchema,
+  ...rangeShape,
+  // Sólo para aparatos en modo kWh por uso: lo que gastó este uso y un comentario opcional con el ciclo
+  kwh: z.number().gt(0).max(100).nullable(),
+  note: z.string().trim().max(120, 'El comentario no puede pasar de 120 caracteres'),
+}
+const createSchema = z
+  .object({ ...usageShape, kwh: usageShape.kwh.default(null), note: usageShape.note.default('') })
+  .refine(withinDay, withinDayMessage)
 const updateSchema = z.object(usageShape).partial()
 // Tope de días por consulta: el periodo de una factura larga cabe; la descarga en CSV se queda en 3 meses
 const MAX_RANGE_DAYS = 400
@@ -88,7 +97,10 @@ usagesRouter.patch('/:id', async (req, res) => {
   if (!withinDay(next)) throw new HttpError(400, 'Datos no válidos', [{ path: 'hours', message: withinDayMessage.message }])
   await assertFits(userId, next, usage.id)
 
-  await usage.update(next)
+  const extra = {}
+  if (data.kwh !== undefined) extra.kwh = data.kwh
+  if (data.note !== undefined) extra.note = data.note
+  await usage.update({ ...next, ...extra })
   if (data.hours !== undefined) await rememberHours(userId, next.deviceId, next.hours)
   res.json({ usage: usageJson(usage) })
 })

@@ -36,6 +36,7 @@ export const deviceJson = (device) => ({
   watts: device.watts,
   defaultHours: device.defaultHours,
   color: device.color,
+  kwhPerUse: device.kwhPerUse ?? null,
 })
 
 export const usageJson = (usage) => ({
@@ -44,6 +45,8 @@ export const usageJson = (usage) => ({
   date: usage.date,
   start: usage.start,
   hours: usage.hours,
+  kwh: usage.kwh ?? null,
+  note: usage.note ?? '',
 })
 
 /** Consumo fijo con los datos de su aparato; hay que cargarlo con `include: 'device'` */

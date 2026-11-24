@@ -24,9 +24,9 @@ describe('descarga del consumo en CSV', () => {
     const csv = toCsv([{ ...rows[0], name: 'Tele; salón' }])
     const [header, line] = csv.replace('﻿', '').trim().split('\r\n')
     expect(csv.startsWith('﻿')).toBe(true)
-    expect(header).toBe('Fecha;Aparato;Origen;Inicio;Fin;Horas;Potencia (W);kWh punta;kWh llano;kWh valle;kWh total;Coste estimado (€)')
+    expect(header).toBe('Fecha;Aparato;Origen;Inicio;Fin;Horas;Potencia (W);kWh punta;kWh llano;kWh valle;kWh total;Coste estimado (€);Comentario')
     expect(line).toContain('"Tele; salón"')
-    expect(line).toMatch(/;\d+,\d{4}$/)
+    expect(line).toMatch(/;\d+,\d{4};$/)
   })
 
   it('no deja pasar de tres meses, ni días futuros, ni un final antes del principio', () => {

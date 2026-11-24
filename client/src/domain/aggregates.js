@@ -1,4 +1,4 @@
-import { fixedDay, usageCost, usageHourlyKwh, usageKwh, usageKwhByBand } from './cost'
+import { fixedDay, usageCost, usageHourlyKwh, usageKwh, usageKwhByBand, usageWatts } from './cost'
 import { usagesFor } from './routines'
 
 export function daySummary(home, date) {
@@ -13,8 +13,9 @@ export function daySummary(home, date) {
   for (const usage of usages) {
     const device = devices.get(usage.deviceId)
     if (!device) continue
-    const usageEnergy = usageKwh(device.watts, usage.hours)
-    const usagePrice = usageCost(home.contract, device.watts, date, usage.start, usage.hours)
+    const watts = usageWatts(device, usage)
+    const usageEnergy = usageKwh(watts, usage.hours)
+    const usagePrice = usageCost(home.contract, watts, date, usage.start, usage.hours)
     kwh += usageEnergy
     cost += usagePrice
 
@@ -23,12 +24,12 @@ export function daySummary(home, date) {
     totals.cost += usagePrice
     totals.uses += 1
 
-    const bands = usageKwhByBand(device.watts, date, usage.start, usage.hours)
+    const bands = usageKwhByBand(watts, date, usage.start, usage.hours)
     byBand.valle += bands.valle
     byBand.llano += bands.llano
     byBand.punta += bands.punta
 
-    usageHourlyKwh(device.watts, usage.start, usage.hours).forEach((value, hour) => {
+    usageHourlyKwh(watts, usage.start, usage.hours).forEach((value, hour) => {
       hourlyKwh[hour] += value
     })
   }

@@ -3,6 +3,17 @@ import { QUARTER } from './time'
 
 export const usageKwh = (watts, hours) => (watts / 1000) * hours
 
+/**
+ * Vatios con los que se calcula la energía de un uso. Si el uso lleva sus kWh (un programa eco), o el
+ * aparato está en modo «kWh por uso», esa energía se reparte por igual en lo que dura el uso; si no,
+ * son los vatios del aparato. El aviso de potencia no usa esto: allí cuentan los vatios del aparato,
+ * que son el máximo que puede pedir.
+ */
+export function usageWatts(device, usage) {
+  const kwh = usage.kwh ?? device.kwhPerUse ?? null
+  return kwh && usage.hours > 0 ? (kwh * 1000) / usage.hours : device.watts
+}
+
 /** Recorre un uso en cuartos de hora. Va con índices enteros para no acumular error de coma flotante. */
 function eachQuarter(start, hours, visit) {
   const first = Math.round(start * 4)

@@ -8,7 +8,7 @@ import { NumberInput } from '../../components/ui/NumberInput'
 import { SectionHeader } from '../../components/ui/SectionHeader'
 import { daySummary } from '../../domain/aggregates'
 import { loggableDevices } from '../../domain/devices'
-import { usageCost, usageKwh } from '../../domain/cost'
+import { usageCost, usageKwh, usageWatts } from '../../domain/cost'
 import { approxEur, eur, kwh } from '../../domain/format'
 import { routineStatus, routineWhen } from '../../domain/routines'
 import { addDays, formatHM, startOfWeek } from '../../domain/time'
@@ -166,7 +166,7 @@ function RoutineCard({ routine, home, today, onEdit }) {
           <div className="text-[15px] font-medium">{routine.name}</div>
           <div className="mt-1.5 font-mono text-[12px] leading-relaxed text-ink-3">
             {routineWhen(routine.weekdays, formatHM(routine.start))} · {formatHM(routine.start)} –{' '}
-            {formatHM(routine.start + routine.hours)} · {approxEur(usageCost(home.contract, device.watts, today, routine.start, routine.hours))}
+            {formatHM(routine.start + routine.hours)} · {approxEur(usageCost(home.contract, usageWatts(device, routine), today, routine.start, routine.hours))}
             {pauseLater && ` · se pausa el ${shortDate(routine.pausedFrom)}`}
           </div>
           {routine.note && <div className="mt-2 border-l-2 border-line-strong pl-2.5 text-[12.5px] leading-snug text-ink-2">{routine.note}</div>}

@@ -63,3 +63,67 @@ export function powerProfile(home, date) {
   }
   return { slots, over, hasLimit, fixedWatts }
 }
+
+// Conversión de unidades de potencia. Todo se guarda en vatios: cada unidad sabe pasar a W y volver.
+
+/** Horas que tiene un año: 365 × 24 */
+export const HOURS_PER_YEAR = 8760
+/** Voltios de un enchufe de casa, para pasar W a amperios si no se dice otra cosa */
+export const MAINS_VOLTS = 230
+
+export const POWER_UNITS = [
+  { id: 'W', label: 'W' },
+  { id: 'kW', label: 'kW' },
+  { id: 'kWhYear', label: 'kWh al año' },
+  { id: 'VA', label: 'V × A' },
+]
+
+/** «1,5» o «1.5» → 1.5; `null` si no es una cifra positiva o cero */
+export function parseDecimal(text) {
+  const clean = String(text ?? '').trim().replace(/\s/g, '').replace(',', '.')
+  if (clean === '') return null
+  const value = Number(clean)
+  return Number.isFinite(value) && value >= 0 ? value : null
+}
+
+/**
+ * Vatios a partir de una cifra en otra unidad (sin redondear); `null` si falta algún dato.
+ * - kW: × 1000.
+ * - kWh al año: la potencia media, kWh × 1000 ÷ 8760 h. Para lo que está enchufado siempre.
+ * - V × A: voltios por amperios, lo que pone el cargador. Es el máximo; el consumo real suele ser menor.
+ */
+export function toWatts({ unit, value, volts, amps }) {
+  if (unit === 'VA') {
+    const v = parseDecimal(volts)
+    const a = parseDecimal(amps)
+    return v === null || a === null ? null : v * a
+  }
+  const number = parseDecimal(value)
+  if (number === null) return null
+  if (unit === 'kW') return number * 1000
+  if (unit === 'kWhYear') return (number * 1000) / HOURS_PER_YEAR
+  return number
+}
+
+/**
+ * La inversa: de vatios a otra unidad. Para V × A no hay una sola respuesta (18 W pueden ser
+ * 12 V × 1,5 A o 5 V × 3,6 A), así que se dan los voltios y devuelve los amperios.
+ */
+export function fromWatts(watts, { unit, volts = MAINS_VOLTS }) {
+  if (unit === 'kW') return watts / 1000
+  if (unit === 'kWhYear') return (watts * HOURS_PER_YEAR) / 1000
+  if (unit === 'VA') {
+    const v = parseDecimal(volts)
+    return v ? watts / v : null
+  }
+  return watts
+}
+
+/** De una unidad a otra pasando por vatios: 0,045 kW → 45 W → 394 kWh al año */
+export function convertPower(input, to) {
+  const watts = toWatts(input)
+  return watts === null ? null : fromWatts(watts, to)
+}
+
+/** Vatios para guardar: enteros y al menos 1; `null` si no hay cifra */
+export const storedWatts = (watts) => (watts === null || !Number.isFinite(watts) ? null : Math.max(1, Math.round(watts)))

@@ -13,9 +13,13 @@ import { useIsMobile } from '../../lib/useIsMobile'
 import { deviceColor } from '../consumo/colors'
 import { DeviceEditor } from './DeviceEditor'
 import { DeviceTags } from './DeviceTags'
+import { PowerCalculator } from './PowerCalculator'
 
 const GRID =
   'grid grid-cols-[minmax(220px,1fr)_150px_64px_96px_86px_minmax(150px,230px)_72px] items-center gap-4 px-1'
+
+/** «0,9 kWh/uso», para los aparatos en ese modo */
+const perUseLabel = (device) => `${String(device.kwhPerUse).replace('.', ',')} kWh/uso`
 
 /** Pestaña Aparatos: los vatios de cada aparato y lo que gasta cada uno esta semana y este mes */
 export function AparatosPage() {
@@ -76,6 +80,14 @@ export function AparatosPage() {
         Usos, kWh y coste son de esta semana; «Mes» es el mes en curso.
       </SectionHeader>
 
+      <p className="mt-4 text-[12.5px] leading-normal text-ink-3">
+        Todo se guarda en vatios (W). Si tu aparato lo dice en kW, kWh al año o voltios y amperios, elige la unidad al
+        editarlo y se convierte sola.
+      </p>
+      <div className="mt-3">
+        <PowerCalculator />
+      </div>
+
       {inline.error !== null && (
         <div className="mt-4">
           <ErrorNotice
@@ -130,6 +142,7 @@ export function AparatosPage() {
                 </div>
                 <div className="mt-2.5 flex items-center justify-between gap-3">
                   <span className={`font-mono text-[12px] leading-relaxed ${totals.uses || totals.fixed ? 'text-ink-2' : 'text-ink-3'}`}>
+                    {device.kwhPerUse && `${perUseLabel(device)} · `}
                     {usesLabel(totals)} · {kwh(totals.kwh)} · mes{' '}
                     {approxEur(monthTotals.byDevice[device.id]?.cost ?? 0)}
                   </span>
@@ -183,6 +196,7 @@ export function AparatosPage() {
                       value={device.watts}
                       onCommit={(watts) => inline.update(device.id, { watts })}
                     />
+                    {device.kwhPerUse && <div className="mt-1 font-mono text-[11px] text-ink-3">{perUseLabel(device)}</div>}
                   </div>
                   <div className={`text-right font-mono text-[12.5px] whitespace-nowrap ${dim(totals.uses || totals.fixed) || 'text-ink-2'}`}>
                     {totals.fixed ? `24 h × ${totals.fixedDays}` : totals.uses}

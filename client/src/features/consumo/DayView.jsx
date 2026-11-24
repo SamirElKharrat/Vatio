@@ -8,7 +8,7 @@ import { Stat, StatRow } from '../../components/ui/Stat'
 import { daySummary } from '../../domain/aggregates'
 import { loggableDevices } from '../../domain/devices'
 import { powerProfile } from '../../domain/power'
-import { usageCost, usageKwh } from '../../domain/cost'
+import { usageCost, usageKwh, usageWatts } from '../../domain/cost'
 import { approxEur, eur, kwh } from '../../domain/format'
 import { bandAt, dayBands, isValleDay } from '../../domain/tariff'
 import { usagesFor } from '../../domain/routines'
@@ -66,10 +66,11 @@ function UsageBlock({ usage, device, contract, drag, clash, onPointerDown, onOpe
   const auto = !!usage.routineId
   const dragging = drag?.id === usage.id
   const range = `${formatHM(usage.start)}–${formatHM(usage.start + usage.hours)}`
-  const cost = approxEur(usageCost(contract, device.watts, usage.date, usage.start, usage.hours))
+  const watts = usageWatts(device, usage)
+  const cost = approxEur(usageCost(contract, watts, usage.date, usage.start, usage.hours))
   const title = auto
     ? `${device.name} · rutina automática ${range} · ${cost}. Pulsa para gestionarla`
-    : `${device.name} · ${range} · ${kwh(usageKwh(device.watts, usage.hours))} · ${cost}. Arrastra para mover, tira de los bordes para alargar, pulsa para editar`
+    : `${device.name} · ${range} · ${kwh(usageKwh(watts, usage.hours))} · ${cost}${usage.note ? ` · ${usage.note}` : ''}. Arrastra para mover, tira de los bordes para alargar, pulsa para editar`
 
   function onKeyDown(event) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -347,7 +348,7 @@ export function DayView({ home, date }) {
               <div className="flex items-center gap-2.5 pr-3.5 pl-1">
                 <span className="size-2.5 flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />
                 <span className="flex-1 truncate text-[13.5px] leading-tight">{device.name}</span>
-                <span className="font-mono text-[11px] text-ink-3">{device.watts} W</span>
+                <span className="font-mono text-[11px] text-ink-3">{deviceLoad(device)}</span>
                 <button
                   type="button"
                   title={`Apuntar un uso de ${device.name}`}
@@ -411,7 +412,10 @@ export function DayView({ home, date }) {
             return (
               <div key={usage.id} className="flex items-center gap-3 border-t border-line px-1 py-2.5 last:border-b hover:bg-hover">
                 <span className="size-2.5 flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />
-                <span className="w-[176px] flex-none truncate text-[13.5px]">{device.name}</span>
+                <span className="w-[176px] flex-none truncate text-[13.5px]" title={usage.note || undefined}>
+                  {device.name}
+                  {usage.note && <span className="block truncate text-[11.5px] text-ink-3">{usage.note}</span>}
+                </span>
                 <span className="w-[112px] flex-none font-mono text-[12px] text-ink-2">
                   {formatHM(usage.start)}–{formatHM(usage.start + usage.hours)}
                   {usage.routineId && (
@@ -420,9 +424,9 @@ export function DayView({ home, date }) {
                     </span>
                   )}
                 </span>
-                <span className="w-[64px] flex-none text-right font-mono text-[12px] text-ink-3">{device.watts} W</span>
+                <span className="w-[64px] flex-none text-right font-mono text-[12px] text-ink-3">{deviceLoad(device)}</span>
                 <span className="min-w-0 flex-1 truncate text-right font-mono text-[12px] text-ink-2">
-                  {kwh(usageKwh(device.watts, usage.hours))}
+                  {kwh(usageKwh(usageWatts(device, usage), usage.hours))}
                 </span>
                 {/* Con precio fijo el tramo no cambia nada: la etiqueta sólo sale con la tarifa por tramos */}
                 {!isFija && (
@@ -433,7 +437,7 @@ export function DayView({ home, date }) {
                   </span>
                 )}
                 <span className="w-[68px] flex-none text-right font-mono text-[13px] font-medium text-ink">
-                  {approxEur(usageCost(contract, device.watts, date, usage.start, usage.hours))}
+                  {approxEur(usageCost(contract, usageWatts(device, usage), date, usage.start, usage.hours))}
                 </span>
               </div>
             )
@@ -456,6 +460,11 @@ export function DayView({ home, date }) {
       {dialogs}
     </div>
   )
+}
+
+/** Lo que gasta un aparato: sus vatios, o sus kWh por uso si va en ese modo */
+function deviceLoad(device) {
+  return device.kwhPerUse ? `${String(device.kwhPerUse).replace('.', ',')} kWh/uso` : `${device.watts} W`
 }
 
 /** «5,75 kW», o «4,6 / 5,75 kW» si punta-llano y valle son distintas */

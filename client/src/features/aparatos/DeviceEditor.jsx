@@ -25,7 +25,7 @@ export function DeviceEditor({ device, devices, onSaved, onClose, deleteWarning 
 
   function save(values) {
     // La duración no se escribe aquí: el aparato recuerda la de su último uso apuntado (1:00 al empezar)
-    const input = { name: values.name, watts: values.watts, color: values.color }
+    const input = { name: values.name, watts: values.watts, color: values.color, kwhPerUse: values.kwhPerUse ?? null }
     if (!isEdit) input.defaultHours = 1
     const options = {
       onSuccess: (saved) => {
@@ -46,7 +46,7 @@ export function DeviceEditor({ device, devices, onSaved, onClose, deleteWarning 
       isEdit={isEdit && !!deleteWarning}
       initial={
         isEdit
-          ? { name: device.name, watts: device.watts, color: device.color }
+          ? { name: device.name, watts: device.watts, color: device.color, kwhPerUse: device.kwhPerUse }
           : { name: '', watts: 1000, color: firstFreeColor(devices.map((item) => item.color)) }
       }
       extraHint="Al apuntarlo con «+» se propone lo que duró la última vez."

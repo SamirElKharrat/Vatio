@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contractedWatts, powerProfile } from './power'
+import { contractedWatts, convertPower, fromWatts, powerProfile, storedWatts, toWatts } from './power'
 
 const MONDAY = '2026-09-14'
 const SATURDAY = '2026-09-19'
@@ -70,5 +70,39 @@ describe('aviso de potencia', () => {
     const result = powerProfile(homeWith([usage('horno', MONDAY, 19, 2), usage('vitro', MONDAY, 19, 2)], { contract: noPower }), MONDAY)
     expect(result.hasLimit).toBe(false)
     expect(result.over).toEqual([])
+  })
+})
+
+describe('unidades de potencia', () => {
+  it('pasa cada unidad a vatios', () => {
+    expect(toWatts({ unit: 'W', value: '1200' })).toBe(1200)
+    expect(toWatts({ unit: 'kW', value: '1,2' })).toBe(1200)
+    expect(storedWatts(toWatts({ unit: 'kWhYear', value: '300' }))).toBe(34)
+    expect(toWatts({ unit: 'VA', volts: '12', amps: '1,5' })).toBe(18)
+  })
+
+  it('sin cifra no da resultado, en vez de un cero engañoso', () => {
+    expect(toWatts({ unit: 'kW', value: '' })).toBeNull()
+    expect(toWatts({ unit: 'kW', value: 'abc' })).toBeNull()
+    expect(toWatts({ unit: 'VA', volts: '12', amps: '' })).toBeNull()
+    expect(storedWatts(null)).toBeNull()
+    expect(storedWatts(0.2)).toBe(1)
+  })
+
+  it('la inversa vuelve a la cifra de partida', () => {
+    expect(fromWatts(1200, { unit: 'kW' })).toBe(1.2)
+    expect(fromWatts(toWatts({ unit: 'kWhYear', value: '300' }), { unit: 'kWhYear' })).toBeCloseTo(300, 9)
+    expect(Math.round(fromWatts(45, { unit: 'kWhYear' }))).toBe(394)
+  })
+
+  it('de W a V × A da los amperios con los voltios que se digan, 230 si no', () => {
+    expect(fromWatts(2000, { unit: 'VA' })).toBeCloseTo(8.7, 1)
+    expect(fromWatts(18, { unit: 'VA', volts: '12' })).toBe(1.5)
+    expect(fromWatts(18, { unit: 'VA', volts: '0' })).toBeNull()
+  })
+
+  it('encadena dos unidades pasando por vatios', () => {
+    expect(Math.round(convertPower({ unit: 'kW', value: '0,045' }, { unit: 'kWhYear' }))).toBe(394)
+    expect(convertPower({ unit: 'kWhYear', value: '' }, { unit: 'kW' })).toBeNull()
   })
 })

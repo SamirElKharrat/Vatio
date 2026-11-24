@@ -30,6 +30,8 @@ Device.init(
     watts: { type: DataTypes.INTEGER, allowNull: false },
     defaultHours: { type: DataTypes.DOUBLE, allowNull: false },
     color: { type: DataTypes.TEXT, allowNull: false },
+    /** kWh que gasta cada uso; vacío, gasta según sus vatios */
+    kwhPerUse: { type: DataTypes.DOUBLE, allowNull: true },
     ...timestamps,
   },
   { sequelize, tableName: 'devices' },
@@ -44,6 +46,10 @@ Usage.init(
     date: { type: DataTypes.DATEONLY, allowNull: false },
     start: { type: DataTypes.DOUBLE, allowNull: false },
     hours: { type: DataTypes.DOUBLE, allowNull: false },
+    /** kWh de este uso, si no son los del aparato (un programa eco, por ejemplo) */
+    kwh: { type: DataTypes.DOUBLE, allowNull: true },
+    /** Comentario opcional: qué ciclo o programa se usó */
+    note: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' },
     ...timestamps,
   },
   { sequelize, tableName: 'usages' },
