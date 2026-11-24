@@ -10,6 +10,7 @@ import * as fixedLoadDevice from './migrations/006-fixed-load-device.js'
 import * as householdName from './migrations/007-household-name.js'
 import * as discountEntries from './migrations/008-discount-entries.js'
 import * as kwhPerUse from './migrations/009-kwh-per-use.js'
+import * as devicePosition from './migrations/010-device-position.js'
 
 // Las migraciones se importan a mano y en orden: así funcionan igual con node y en los tests.
 const migrations = [
@@ -22,6 +23,7 @@ const migrations = [
   { name: '007-household-name', ...householdName },
   { name: '008-discount-entries', ...discountEntries },
   { name: '009-kwh-per-use', ...kwhPerUse },
+  { name: '010-device-position', ...devicePosition },
 ]
 
 export const migrator = new Umzug({

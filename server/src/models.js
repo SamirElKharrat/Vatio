@@ -32,6 +32,8 @@ Device.init(
     color: { type: DataTypes.TEXT, allowNull: false },
     /** kWh que gasta cada uso; vacío, gasta según sus vatios */
     kwhPerUse: { type: DataTypes.DOUBLE, allowNull: true },
+    /** Puesto en la lista, elegido por la persona (0 = el primero) */
+    position: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     ...timestamps,
   },
   { sequelize, tableName: 'devices' },

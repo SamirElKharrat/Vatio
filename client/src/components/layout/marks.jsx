@@ -26,6 +26,13 @@ export function NavIcon({ name, className = 'size-[18px]' }) {
 }
 
 /** Flecha de paso: anterior o siguiente */
+const CHEVRON_PATHS = {
+  left: 'M8.75 2.75 4.5 7l4.25 4.25',
+  right: 'M5.25 2.75 9.5 7l-4.25 4.25',
+  up: 'M2.75 8.75 7 4.5l4.25 4.25',
+  down: 'M2.75 5.25 7 9.5l4.25-4.25',
+}
+
 export function Chevron({ direction = 'right', className = 'size-3.5' }) {
   return (
     <svg
@@ -38,7 +45,7 @@ export function Chevron({ direction = 'right', className = 'size-3.5' }) {
       aria-hidden="true"
       className={className}
     >
-      <path d={direction === 'left' ? 'M8.75 2.75 4.5 7l4.25 4.25' : 'M5.25 2.75 9.5 7l-4.25 4.25'} />
+      <path d={CHEVRON_PATHS[direction] ?? CHEVRON_PATHS.right} />
     </svg>
   )
 }

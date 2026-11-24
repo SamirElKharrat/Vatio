@@ -470,6 +470,35 @@ describe('modo kWh por uso', () => {
   })
 })
 
+describe('orden de los aparatos', () => {
+  const names = async (agent) => (await agent.get('/api/devices')).body.devices.map((device) => device.name)
+
+  it('se guarda el orden elegido y vale en la siguiente consulta', async () => {
+    const devices = (await luis.get('/api/devices')).body.devices
+    const reversed = [...devices].reverse()
+    const res = await luis.put('/api/devices/order').send({ ids: reversed.map((device) => device.id) })
+    expect(res.status).toBe(200)
+    expect(res.body.devices.map((device) => device.id)).toEqual(reversed.map((device) => device.id))
+    expect(await names(luis)).toEqual(reversed.map((device) => device.name))
+  })
+
+  it('un aparato nuevo va al final', async () => {
+    const created = await luis.post('/api/devices').send({ name: 'Microondas', watts: 800, defaultHours: 0.25, color: '#6486d5' })
+    expect((await names(luis)).at(-1)).toBe('Microondas')
+    await luis.delete(`/api/devices/${created.body.device.id}`)
+  })
+
+  it('rechaza listas incompletas, repetidas o con aparatos de otra cuenta', async () => {
+    const own = (await luis.get('/api/devices')).body.devices.map((device) => device.id)
+    const other = (await ana.get('/api/devices')).body.devices[0].id
+    expect((await luis.put('/api/devices/order').send({ ids: own.slice(1) })).status).toBe(400)
+    expect((await luis.put('/api/devices/order').send({ ids: [own[0], ...own.slice(0, -1)] })).status).toBe(400)
+    expect((await luis.put('/api/devices/order').send({ ids: [other, ...own.slice(1)] })).status).toBe(400)
+    // El orden no ha cambiado
+    expect((await luis.get('/api/devices')).body.devices.map((device) => device.id)).toEqual(own)
+  })
+})
+
 describe('consulta de usos por fechas', () => {
   it('rechaza un periodo al revés o de más de 400 días', async () => {
     expect((await ana.get('/api/usages?from=2026-09-01&to=2026-11-30')).status).toBe(200)

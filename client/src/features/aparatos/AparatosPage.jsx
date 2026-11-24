@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { errorMessage } from '../../api/client'
-import { useHousehold, useUpdateDevice } from '../../api/hooks'
+import { useHousehold, useReorderDevices, useUpdateDevice } from '../../api/hooks'
 import { Button } from '../../components/ui/Button'
 import { ErrorNotice, Loading } from '../../components/ui/Notice'
 import { NumberInput } from '../../components/ui/NumberInput'
@@ -10,13 +10,16 @@ import { approxEur, kwh } from '../../domain/format'
 import { addDays, datesBetween, startOfWeek } from '../../domain/time'
 import { monthRange, todayISO } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
+import { Chevron } from '../../components/layout/marks'
+import { moveItem } from '../../lib/reorder'
 import { deviceColor } from '../consumo/colors'
 import { DeviceEditor } from './DeviceEditor'
 import { DeviceTags } from './DeviceTags'
 import { PowerCalculator } from './PowerCalculator'
+import { useRowDrag } from './useRowDrag'
 
 const GRID =
-  'grid grid-cols-[minmax(220px,1fr)_150px_64px_96px_86px_minmax(150px,230px)_72px] items-center gap-4 px-1'
+  'grid grid-cols-[20px_minmax(220px,1fr)_150px_64px_96px_86px_minmax(150px,230px)_72px] items-center gap-4 px-1'
 
 /** «0,9 kWh/uso», para los aparatos en ese modo */
 const perUseLabel = (device) => `${String(device.kwhPerUse).replace('.', ',')} kWh/uso`
@@ -32,6 +35,22 @@ export function AparatosPage() {
   const inline = useUpdateDevice()
   const [editing, setEditing] = useState(null)
   const mobile = useIsMobile()
+  // Orden manual: arrastrando el asa en el escritorio, con flechas en el modo «Ordenar» del móvil
+  const reorder = useReorderDevices()
+  const [sorting, setSorting] = useState(false)
+  const [announce, setAnnounce] = useState('')
+  const loadedDevices = weekData.home?.devices ?? []
+  const ids = loadedDevices.map((device) => device.id)
+  const { drag, start } = useRowDrag(ids, (next) => reorder.mutate(next))
+
+  /** Sube (−1) o baja (+1) un aparato un puesto, y lo anuncia para los lectores de pantalla */
+  function moveBy(device, delta) {
+    const from = ids.indexOf(device.id)
+    const to = from + delta
+    if (to < 0 || to >= ids.length) return
+    reorder.mutate(moveItem(ids, from, to))
+    setAnnounce(`${device.name}: puesto ${to + 1} de ${ids.length}`)
+  }
 
   const error = weekData.error ?? monthData.error
   if (error) {
@@ -88,6 +107,23 @@ export function AparatosPage() {
         <PowerCalculator />
       </div>
 
+      <p className="sr-only" aria-live="polite">
+        {announce}
+      </p>
+      {reorder.error && (
+        <div className="mt-4">
+          <ErrorNotice
+            action={
+              <Button size="sm" onClick={reorder.reset}>
+                Cerrar
+              </Button>
+            }
+          >
+            No se ha guardado el orden. {errorMessage(reorder.error)}
+          </ErrorNotice>
+        </div>
+      )}
+
       {inline.error !== null && (
         <div className="mt-4">
           <ErrorNotice
@@ -104,12 +140,33 @@ export function AparatosPage() {
 
       {mobile && (
         <div className="mt-4">
+          {devices.length > 1 && (
+            <div className="flex items-center justify-between border-b border-line-strong pb-2.5">
+              <span className="label">{sorting ? 'Ordena con las flechas' : `${devices.length} aparatos`}</span>
+              <Button size="sm" variant={sorting ? 'primary' : undefined} onClick={() => setSorting(!sorting)}>
+                {sorting ? 'Hecho' : 'Ordenar'}
+              </Button>
+            </div>
+          )}
           {devices.length === 0 && (
             <p className="border-b border-line py-4 text-[13.5px] text-ink-2">
               Aún no hay aparatos. Añade el primero para empezar a apuntar usos.
             </p>
           )}
-          {devices.map((device) => {
+          {sorting &&
+            devices.map((device, index) => (
+              <div key={device.id} className="flex items-center gap-3 border-b border-line py-2.5">
+                <span className="size-3 flex-none rounded-[4px]" style={{ background: deviceColor(device.color) }} />
+                <span className="min-w-0 flex-1 truncate text-[15px]">{device.name}</span>
+                <Button size="sm" disabled={index === 0} onClick={() => moveBy(device, -1)} aria-label={`Subir ${device.name}`}>
+                  <Chevron direction="up" />
+                </Button>
+                <Button size="sm" disabled={index === devices.length - 1} onClick={() => moveBy(device, 1)} aria-label={`Bajar ${device.name}`}>
+                  <Chevron direction="down" />
+                </Button>
+              </div>
+            ))}
+          {!sorting && devices.map((device) => {
             const totals = week.byDevice[device.id] ?? { kwh: 0, cost: 0, uses: 0 }
             return (
               <div key={device.id} className="border-b border-line py-4">
@@ -160,6 +217,7 @@ export function AparatosPage() {
         <div className="overflow-x-auto">
           <div className="min-w-[820px]">
             <div className={`${GRID} label mt-7 border-b border-line-strong pb-2.5`}>
+              <div />
               <div>Aparato</div>
               <div className="text-center">Potencia</div>
               <div className="text-right">Usos</div>
@@ -175,13 +233,40 @@ export function AparatosPage() {
               </p>
             )}
 
+            <div data-rows>
             {devices.map((device) => {
               const totals = week.byDevice[device.id] ?? { kwh: 0, cost: 0, uses: 0 }
               const monthCost = monthTotals.byDevice[device.id]?.cost ?? 0
               // Las cifras a cero se apagan, para que destaquen los aparatos que sí han gastado
               const dim = (value) => (value ? '' : 'text-ink-4')
+              const dragging = drag?.id === device.id
+              // Línea naranja donde caería la fila que se arrastra
+              const others = drag ? ids.filter((id) => id !== drag.id) : []
+              const moved = drag && drag.target !== ids.indexOf(drag.id)
+              const dropBefore = moved && others[drag.target] === device.id
+              const dropAfter = moved && drag.target === others.length && others.at(-1) === device.id
               return (
-                <div key={device.id} className={`${GRID} border-b border-line py-3 hover:bg-hover`}>
+                <div
+                  key={device.id}
+                  data-row-id={device.id}
+                  style={dragging ? { transform: `translateY(${drag.dy}px)` } : undefined}
+                  className={`${GRID} border-b border-line py-3 ${dragging ? 'relative z-10 rounded-control bg-surface shadow-lifted' : 'hover:bg-hover'} ${dropBefore ? 'shadow-[inset_0_2px_0_var(--color-accent)]' : ''} ${dropAfter ? 'shadow-[inset_0_-2px_0_var(--color-accent)]' : ''}`}
+                >
+                  <button
+                    type="button"
+                    aria-label={`Mover ${device.name}`}
+                    title="Arrastra para ordenar, o usa las flechas ↑ ↓"
+                    onPointerDown={(event) => start(device.id, event)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                        event.preventDefault()
+                        moveBy(device, event.key === 'ArrowUp' ? -1 : 1)
+                      }
+                    }}
+                    className={`grid h-8 w-5 touch-none place-items-center rounded-[5px] font-mono text-[13px] tracking-[-2px] text-ink-4 hover:bg-ink/6 hover:text-ink-2 ${dragging ? 'cursor-grabbing text-accent' : 'cursor-grab'}`}
+                  >
+                    ⋮⋮
+                  </button>
                   <div className="flex min-w-0 flex-wrap items-center gap-x-[11px] gap-y-1.5">
                     <span className="size-[11px] flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />
                     <span className="max-w-full truncate text-[14px]">{device.name}</span>
@@ -222,6 +307,7 @@ export function AparatosPage() {
                 </div>
               )
             })}
+            </div>
           </div>
         </div>
       )}

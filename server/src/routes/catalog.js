@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { UniqueConstraintError } from 'sequelize'
 import { z } from 'zod'
 import { currentUser } from '../auth.js'
+import { sequelize } from '../db.js'
 import { deviceJson, fixedLoadJson } from '../household.js'
 import { HttpError, colorSchema, idParam, parse, quarter, wattsSchema } from '../http.js'
 import { Device, FixedLoad } from '../models.js'
@@ -25,15 +26,46 @@ const deviceShape = {
 const deviceSchema = z.object({ ...deviceShape, kwhPerUse: deviceShape.kwhPerUse.default(null) })
 const deviceUpdateSchema = z.object(deviceShape).partial()
 
+/** En el orden que eligió la persona; a igual puesto, por fecha de alta */
+const DEVICE_ORDER = [
+  ['position', 'ASC'],
+  ['createdAt', 'ASC'],
+]
+
 devicesRouter.get('/', async (_req, res) => {
-  const devices = await Device.findAll({ where: { userId: currentUser(res).id }, order: [['createdAt', 'ASC']] })
+  const devices = await Device.findAll({ where: { userId: currentUser(res).id }, order: DEVICE_ORDER })
   res.json({ devices: devices.map(deviceJson) })
 })
 
 devicesRouter.post('/', async (req, res) => {
   const data = parse(deviceSchema, req.body)
-  const device = await Device.create({ ...data, userId: currentUser(res).id })
+  const userId = currentUser(res).id
+  // Un aparato nuevo va al final de la lista
+  const last = (await Device.max('position', { where: { userId } })) ?? -1
+  const device = await Device.create({ ...data, userId, position: last + 1 })
   res.status(201).json({ device: deviceJson(device) })
+})
+
+const orderSchema = z.object({
+  ids: z.array(z.uuid()).min(1).max(500).refine((ids) => new Set(ids).size === ids.length, 'Hay aparatos repetidos'),
+})
+
+/** Guarda el orden de los aparatos: la lista entera de ids, del primero al último */
+devicesRouter.put('/order', async (req, res) => {
+  const { ids } = parse(orderSchema, req.body)
+  const userId = currentUser(res).id
+  const own = await Device.findAll({ where: { userId }, attributes: ['id'] })
+  const ownIds = new Set(own.map((device) => device.id))
+  if (ids.length !== ownIds.size || ids.some((id) => !ownIds.has(id))) {
+    throw new HttpError(400, 'La lista tiene que traer todos tus aparatos, una vez cada uno')
+  }
+  await sequelize.transaction(async (transaction) => {
+    for (const [position, id] of ids.entries()) {
+      await Device.update({ position }, { where: { id, userId }, transaction })
+    }
+  })
+  const devices = await Device.findAll({ where: { userId }, order: DEVICE_ORDER })
+  res.json({ devices: devices.map(deviceJson) })
 })
 
 async function ownDevice(userId, id) {

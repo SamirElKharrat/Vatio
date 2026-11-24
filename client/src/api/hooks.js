@@ -316,6 +316,30 @@ function useListCrud(
 
 export const useUpdateDevice = () => useInlineUpdate(keys.devices, '/devices')
 
+/**
+ * Guarda el orden de los aparatos. La lista cambia en pantalla al momento y, si el servidor lo
+ * rechaza, vuelve a como estaba.
+ */
+export function useReorderDevices() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (ids) => (await api('/devices/order', { method: 'PUT', body: { ids } })).devices,
+    onMutate: async (ids) => {
+      await queryClient.cancelQueries({ queryKey: keys.devices })
+      const previous = queryClient.getQueryData(keys.devices)
+      if (previous) {
+        const byId = new Map(previous.map((device) => [device.id, device]))
+        queryClient.setQueryData(keys.devices, ids.map((id) => byId.get(id)).filter(Boolean))
+      }
+      return { previous }
+    },
+    onError: (_error, _ids, context) => {
+      if (context?.previous) queryClient.setQueryData(keys.devices, context.previous)
+    },
+    onSuccess: (devices) => queryClient.setQueryData(keys.devices, devices),
+  })
+}
+
 // Al borrar un aparato el servidor borra también sus usos, sus rutinas y su consumo fijo
 export const useDeviceCrud = () =>
   useListCrud(keys.devices, '/devices', 'device', [USAGES_KEY, keys.routines, keys.fixedLoads])
