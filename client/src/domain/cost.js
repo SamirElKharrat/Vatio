@@ -37,13 +37,20 @@ export function usageHourlyKwh(watts, start, hours) {
   return hourly
 }
 
-/** Consumo y coste de los consumos fijos durante un día entero */
+/**
+ * Consumo y coste de los consumos fijos durante un día entero, en total y por cada uno
+ * (`byLoad`, con la clave del aparato, o la del fijo si no tiene aparato)
+ */
 export function fixedDay(contract, fixedLoads, date) {
   let kwh = 0
   let cost = 0
+  const byLoad = {}
   for (const load of fixedLoads) {
-    kwh += usageKwh(load.watts, 24)
-    cost += usageCost(contract, load.watts, date, 0, 24)
+    const loadKwh = usageKwh(load.watts, 24)
+    const loadCost = usageCost(contract, load.watts, date, 0, 24)
+    kwh += loadKwh
+    cost += loadCost
+    byLoad[load.deviceId ?? load.id] = { kwh: loadKwh, cost: loadCost }
   }
-  return { kwh, cost }
+  return { kwh, cost, byLoad }
 }

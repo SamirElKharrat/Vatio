@@ -423,6 +423,23 @@ describe('descuentos por mes', () => {
   })
 })
 
+describe('duración que se propone al apuntar', () => {
+  it('el aparato recuerda lo que duró su último uso apuntado o cambiado a mano', async () => {
+    const secadora = await deviceNamed(ana, 'Secadora')
+    const created = await ana.post('/api/usages').send({ deviceId: secadora.id, date: '2026-10-05', start: 3, hours: 1.75 })
+    expect(created.status).toBe(201)
+    expect((await deviceNamed(ana, 'Secadora')).defaultHours).toBe(1.75)
+
+    // Moverlo de hora no cambia lo que dura; alargarlo sí
+    await ana.patch(`/api/usages/${created.body.usage.id}`).send({ start: 4 })
+    expect((await deviceNamed(ana, 'Secadora')).defaultHours).toBe(1.75)
+    await ana.patch(`/api/usages/${created.body.usage.id}`).send({ hours: 2.5 })
+    expect((await deviceNamed(ana, 'Secadora')).defaultHours).toBe(2.5)
+
+    await ana.delete(`/api/usages/${created.body.usage.id}`)
+  })
+})
+
 describe('consulta de usos por fechas', () => {
   it('rechaza un periodo al revés o de más de 400 días', async () => {
     expect((await ana.get('/api/usages?from=2026-09-01&to=2026-11-30')).status).toBe(200)

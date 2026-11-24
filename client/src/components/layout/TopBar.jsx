@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useHousehold, useLogout } from '../../api/hooks'
 import { periodSummary } from '../../domain/aggregates'
 import { approxEur, kwh } from '../../domain/format'
 import { addDays, datesBetween, startOfWeek } from '../../domain/time'
 import { dayTitle, shiftMonth, todayISO, weekNumber } from '../../lib/dates'
-import { useIsMobile } from '../../lib/useIsMobile'
 import { consumoPath, useSelectedDate } from '../../lib/useSelectedDate'
 import { ExportDialog } from '../../features/consumo/ExportDialog'
 import { Button } from '../ui/Button'
@@ -27,7 +26,6 @@ function tariffChip(contract) {
 export function TopBar() {
   const { pathname } = useLocation()
   const { date, span } = useSelectedDate()
-  const mobile = useIsMobile()
   const [exporting, setExporting] = useState(false)
   const logout = useLogout()
   const navigate = useNavigate()
@@ -40,18 +38,29 @@ export function TopBar() {
   const isConsumo = pathname.startsWith('/consumo')
   const totals = home ? periodSummary(home, week) : null
 
-  // Las flechas saltan de semana en semana, o de mes en mes en la vista Mes.
-  // En el móvil no están las letras de los días, así que en la vista Día saltan de día en día.
-  const byDay = mobile && span === 'dia'
+  // Las flechas pasan de día en día en la vista Día, de semana en semana en Semana y de mes en mes en Mes
   const step = (direction) =>
-    span === 'mes' ? shiftMonth(date, direction) : addDays(date, (byDay ? 1 : 7) * direction)
-  const stepName = span === 'mes' ? 'Mes' : byDay ? 'Día' : 'Semana'
+    span === 'mes' ? shiftMonth(date, direction) : addDays(date, (span === 'dia' ? 1 : 7) * direction)
+  const stepName = span === 'mes' ? 'Mes' : span === 'dia' ? 'Día' : 'Semana'
   // Fuera de Consumo, en el móvil la barra sólo lleva el nombre de la app y «Salir»
   const mobileOnlyConsumo = isConsumo ? '' : 'max-sm:hidden'
 
+  // La barra se queda pegada arriba al bajar; la sombra sale sólo cuando ya se ha despegado.
+  // Se mira con un elemento vacío justo encima, sin escuchar cada evento de scroll.
+  const sentinel = useRef(null)
+  const [stuck, setStuck] = useState(false)
+  useEffect(() => {
+    const target = sentinel.current
+    if (!target || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => setStuck(!entry.isIntersecting))
+    observer.observe(target)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <header className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-line bg-surface-2 px-8 py-3.5 max-lg:px-6 max-sm:px-4 max-sm:py-3">
-      <div className="flex w-full items-center justify-between gap-3 sm:hidden">
+    <>
+      {/* En el móvil la fila del nombre de la app no se queda fija: se va al bajar */}
+      <div className={`flex w-full items-center justify-between gap-3 bg-surface-2 px-4 pt-3 pb-3 sm:hidden ${isConsumo ? '' : 'border-b border-line'}`}>
         <div className="min-w-0">
           <Brand />
           <HouseholdLine className="mt-1 text-ink-3" />
@@ -75,6 +84,11 @@ export function TopBar() {
         </div>
       </div>
 
+      <div ref={sentinel} aria-hidden="true" className="h-0" />
+      {/* Sin desenfoque de fondo: en Firefox sin aceleración deja la web a tirones */}
+      <header
+        className={`sticky top-0 z-30 flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-line bg-surface-2 px-8 py-3.5 max-lg:px-6 max-sm:px-4 max-sm:pt-1.5 max-sm:pb-3 ${isConsumo ? '' : 'max-sm:hidden'} ${stuck ? 'shadow-[0_6px_14px_-10px_rgb(38_33_27/0.45)]' : ''}`}
+      >
       <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-2 ${mobileOnlyConsumo}`}>
         <h1 className="text-[17px] font-medium tracking-[-0.01em] text-ink max-sm:sr-only">{title}</h1>
         <span className="font-mono text-[11.5px] text-ink-3 max-sm:hidden">
@@ -137,5 +151,6 @@ export function TopBar() {
         )}
       </div>
     </header>
+    </>
   )
 }

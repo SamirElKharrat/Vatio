@@ -1,13 +1,6 @@
 import { useDeviceCrud } from '../../api/hooks'
-import { formatHM, parseHM } from '../../domain/time'
 import { firstFreeColor } from '../../lib/palette'
 import { ItemEditor } from './ItemEditor'
-
-/** Lee una duración escrita como «1:30» o «1,5» y la devuelve en horas; `null` si no vale */
-function parseDuration(text) {
-  const hours = parseHM(text)
-  return hours !== null && hours >= 0.25 ? hours : null
-}
 
 /**
  * Diálogo para dar de alta o cambiar un aparato. Se abre desde Aparatos y también desde cualquier
@@ -31,7 +24,9 @@ export function DeviceEditor({ device, devices, onSaved, onClose, deleteWarning 
   }
 
   function save(values) {
-    const input = { name: values.name, watts: values.watts, color: values.color, defaultHours: parseDuration(values.extra) }
+    // La duración no se escribe aquí: el aparato recuerda la de su último uso apuntado (1:00 al empezar)
+    const input = { name: values.name, watts: values.watts, color: values.color }
+    if (!isEdit) input.defaultHours = 1
     const options = {
       onSuccess: (saved) => {
         crud.create.reset()
@@ -51,13 +46,10 @@ export function DeviceEditor({ device, devices, onSaved, onClose, deleteWarning 
       isEdit={isEdit && !!deleteWarning}
       initial={
         isEdit
-          ? { name: device.name, watts: device.watts, color: device.color, extra: formatHM(device.defaultHours) }
-          : { name: '', watts: 1000, color: firstFreeColor(devices.map((item) => item.color)), extra: '1:00' }
+          ? { name: device.name, watts: device.watts, color: device.color }
+          : { name: '', watts: 1000, color: firstFreeColor(devices.map((item) => item.color)) }
       }
-      extraLabel="Duración"
-      extraPlaceholder="1:30"
-      extraHint="Lo que suele durar un uso, escrito como 1:30 · se propone al apuntar"
-      validateExtra={(value) => (parseDuration(value) === null ? 'Escribe la duración como 1:30' : null)}
+      extraHint="Al apuntarlo con «+» se propone lo que duró la última vez."
       deleteWarning={deleteWarning}
       pending={crud.create.isPending || crud.save.isPending || crud.remove.isPending}
       error={crud.create.error ?? crud.save.error ?? crud.remove.error}

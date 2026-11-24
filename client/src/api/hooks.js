@@ -150,10 +150,13 @@ export function useCreateUsage() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (usage) => (await api('/usages', { method: 'POST', body: usage })).usage,
-    onSuccess: (usage) =>
+    onSuccess: (usage) => {
       patchUsages(queryClient, (usages, from, to) =>
         usage.date >= from && usage.date <= to ? [...usages, usage] : usages,
-      ),
+      )
+      // El aparato recuerda la duración de este uso para proponerla la próxima vez
+      queryClient.invalidateQueries({ queryKey: keys.devices })
+    },
   })
 }
 
@@ -167,7 +170,11 @@ export function useUpdateUsage() {
     mutationFn: async ({ id, changes }) =>
       (await api(`/usages/${id}`, { method: 'PATCH', body: changes })).usage,
     onError: (_error, { snapshot }) => restoreUsages(queryClient, snapshot),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: USAGES_KEY }),
+    onSettled: (_data, _error, { changes }) => {
+      queryClient.invalidateQueries({ queryKey: USAGES_KEY })
+      // Si cambia lo que dura, el aparato lo recuerda para la próxima vez
+      if (changes.hours !== undefined) queryClient.invalidateQueries({ queryKey: keys.devices })
+    },
   })
 
   function update(id, changes, options) {

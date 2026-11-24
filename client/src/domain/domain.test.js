@@ -230,4 +230,14 @@ describe('totales de la casa del prototipo', () => {
     expect(week.byBand.valle + week.byBand.llano + week.byBand.punta).toBeCloseTo(week.total.kwh, 10)
     expect(week.byDevice.ter.uses).toBe(9)
   })
+
+  it('cada consumo fijo cuenta por su aparato todos los días, sin sumar dos veces', () => {
+    const week = periodSummary(home, datesBetween(MONDAY, '2026-09-20'))
+    // La nevera de 45 W: 45 W × 24 h × 7 días
+    expect(week.byDevice.nev).toMatchObject({ uses: 0, fixed: true, fixedDays: 7 })
+    expect(week.byDevice.nev.kwh).toBeCloseTo(0.045 * 24 * 7, 10)
+    const sum = (key) => Object.values(week.byDevice).reduce((total, item) => total + item[key], 0)
+    expect(sum('kwh')).toBeCloseTo(week.total.kwh, 10)
+    expect(sum('cost')).toBeCloseTo(week.total.cost, 10)
+  })
 })

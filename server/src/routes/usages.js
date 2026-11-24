@@ -56,8 +56,17 @@ usagesRouter.post('/', async (req, res) => {
   const userId = currentUser(res).id
   await assertFits(userId, data)
   const usage = await Usage.create({ ...data, userId })
+  await rememberHours(userId, usage.deviceId, usage.hours)
   res.status(201).json({ usage: usageJson(usage) })
 })
+
+/**
+ * El aparato recuerda lo que duró su último uso apuntado a mano: es lo que se propone la próxima vez
+ * que se apunte. Ya no se escribe en el editor del aparato.
+ */
+async function rememberHours(userId, deviceId, hours) {
+  await Device.update({ defaultHours: hours }, { where: { id: deviceId, userId } })
+}
 
 async function ownUsage(userId, id) {
   const usage = await Usage.findOne({ where: { id: idParam(id), userId } })
@@ -80,6 +89,7 @@ usagesRouter.patch('/:id', async (req, res) => {
   await assertFits(userId, next, usage.id)
 
   await usage.update(next)
+  if (data.hours !== undefined) await rememberHours(userId, next.deviceId, next.hours)
   res.json({ usage: usageJson(usage) })
 })
 

@@ -11,7 +11,7 @@ import { ColorPicker } from '../../components/pickers'
 export function ItemEditor(props) {
   const [name, setName] = useState(props.initial.name)
   const [watts, setWatts] = useState(String(props.initial.watts))
-  const [extra, setExtra] = useState(props.initial.extra)
+  const [extra, setExtra] = useState(props.initial.extra ?? '')
   const [color, setColor] = useState(props.initial.color)
   const [problem, setProblem] = useState('')
   const [confirming, setConfirming] = useState(false)
@@ -43,13 +43,15 @@ export function ItemEditor(props) {
             value={watts}
             onChange={(event) => setWatts(event.target.value)}
           />
-          <Field
-            inline
-            label={props.extraLabel}
-            placeholder={props.extraPlaceholder}
-            value={extra}
-            onChange={(event) => setExtra(event.target.value)}
-          />
+          {props.extraLabel && (
+            <Field
+              inline
+              label={props.extraLabel}
+              placeholder={props.extraPlaceholder}
+              value={extra}
+              onChange={(event) => setExtra(event.target.value)}
+            />
+          )}
         </div>
         {props.extraHint && <p className="mt-2 text-[12px] leading-normal text-ink-3 sm:pl-[122px]">{props.extraHint}</p>}
 

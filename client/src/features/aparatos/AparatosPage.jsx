@@ -12,9 +12,10 @@ import { monthRange, todayISO } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { deviceColor } from '../consumo/colors'
 import { DeviceEditor } from './DeviceEditor'
+import { DeviceTags } from './DeviceTags'
 
 const GRID =
-  'grid grid-cols-[minmax(160px,1fr)_150px_56px_96px_86px_minmax(150px,230px)_72px] items-center gap-4 px-1'
+  'grid grid-cols-[minmax(220px,1fr)_150px_64px_96px_86px_minmax(150px,230px)_72px] items-center gap-4 px-1'
 
 /** Pestaña Aparatos: los vatios de cada aparato y lo que gasta cada uno esta semana y este mes */
 export function AparatosPage() {
@@ -50,15 +51,16 @@ export function AparatosPage() {
   const costMax = Math.max(0.0001, ...devices.map((device) => week.byDevice[device.id]?.cost ?? 0))
   // Los aparatos que cuentan como consumo fijo: no se apuntan, se suman solos las 24 h
   const fixedIds = new Set(weekData.home.fixedLoads.map((load) => load.deviceId))
-  const fixedChip = (device) =>
-    fixedIds.has(device.id) && (
-      <span
-        title="Cuenta como consumo fijo: se suma solo todo el día y no se apunta"
-        className="flex-none rounded-[5px] bg-accent/10 px-1.5 py-[3px] font-mono text-[10.5px] leading-none text-accent-ink"
-      >
-        Fijo · 24 h
-      </span>
-    )
+  const tags = (device) => (
+    <DeviceTags
+      isFixed={fixedIds.has(device.id)}
+      routines={weekData.home.routines.filter((routine) => routine.deviceId === device.id)}
+      today={today}
+    />
+  )
+  // Un fijo no tiene usos: cuenta las 24 h de cada día del periodo
+  const usesLabel = (totals) =>
+    totals.fixed ? `24 h × ${totals.fixedDays}` : totals.uses === 1 ? '1 uso' : `${totals.uses} usos`
 
   return (
     <div className="max-w-[1120px]">
@@ -102,7 +104,6 @@ export function AparatosPage() {
                 <div className="flex items-center gap-3">
                   <span className="size-3 flex-none rounded-[4px]" style={{ background: deviceColor(device.color) }} />
                   <span className="min-w-0 flex-1 truncate text-[15.5px] font-medium">{device.name}</span>
-                  {fixedChip(device)}
                   <NumberInput
                     label={`Potencia de ${device.name}`}
                     unit="W"
@@ -113,6 +114,9 @@ export function AparatosPage() {
                     onCommit={(watts) => inline.update(device.id, { watts })}
                   />
                 </div>
+                {(fixedIds.has(device.id) || weekData.home.routines.some((routine) => routine.deviceId === device.id)) && (
+                  <div className="mt-2 flex flex-wrap gap-1.5 pl-6">{tags(device)}</div>
+                )}
                 <div className="mt-3 flex items-center gap-3">
                   <div className="h-1.5 flex-1 overflow-hidden rounded-swatch bg-ink/8">
                     <div
@@ -125,8 +129,8 @@ export function AparatosPage() {
                   </span>
                 </div>
                 <div className="mt-2.5 flex items-center justify-between gap-3">
-                  <span className={`font-mono text-[12px] leading-relaxed ${totals.uses ? 'text-ink-2' : 'text-ink-3'}`}>
-                    {totals.uses === 1 ? '1 uso' : `${totals.uses} usos`} · {kwh(totals.kwh)} · mes{' '}
+                  <span className={`font-mono text-[12px] leading-relaxed ${totals.uses || totals.fixed ? 'text-ink-2' : 'text-ink-3'}`}>
+                    {usesLabel(totals)} · {kwh(totals.kwh)} · mes{' '}
                     {approxEur(monthTotals.byDevice[device.id]?.cost ?? 0)}
                   </span>
                   <Button size="sm" onClick={() => setEditing(device)} aria-label={`Editar ${device.name}`}>
@@ -165,10 +169,10 @@ export function AparatosPage() {
               const dim = (value) => (value ? '' : 'text-ink-4')
               return (
                 <div key={device.id} className={`${GRID} border-b border-line py-3 hover:bg-hover`}>
-                  <div className="flex min-w-0 items-center gap-[11px]">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-[11px] gap-y-1.5">
                     <span className="size-[11px] flex-none rounded-swatch" style={{ background: deviceColor(device.color) }} />
-                    <span className="truncate text-[14px]">{device.name}</span>
-                    {fixedChip(device)}
+                    <span className="max-w-full truncate text-[14px]">{device.name}</span>
+                    {tags(device)}
                   </div>
                   <div className="text-center">
                     <NumberInput
@@ -180,7 +184,9 @@ export function AparatosPage() {
                       onCommit={(watts) => inline.update(device.id, { watts })}
                     />
                   </div>
-                  <div className={`text-right font-mono text-[12.5px] ${dim(totals.uses) || 'text-ink-2'}`}>{totals.uses}</div>
+                  <div className={`text-right font-mono text-[12.5px] whitespace-nowrap ${dim(totals.uses || totals.fixed) || 'text-ink-2'}`}>
+                    {totals.fixed ? `24 h × ${totals.fixedDays}` : totals.uses}
+                  </div>
                   <div className={`text-right font-mono text-[12.5px] ${dim(totals.kwh)}`}>{kwh(totals.kwh)}</div>
                   <div className={`text-right font-mono text-[12.5px] ${dim(monthCost) || 'text-ink-2'}`}>{approxEur(monthCost)}</div>
                   <div className="flex items-center gap-3">

@@ -78,6 +78,14 @@ export function periodSummary(home, dates) {
       acc.cost += totals.cost
       acc.uses += totals.uses
     }
+    // Los consumos fijos también cuentan por aparato: todo el día, todos los días del periodo
+    for (const [deviceId, totals] of Object.entries(day.fixed.byLoad)) {
+      const acc = (summary.byDevice[deviceId] ??= { kwh: 0, cost: 0, uses: 0 })
+      acc.kwh += totals.kwh
+      acc.cost += totals.cost
+      acc.fixed = true
+      acc.fixedDays = (acc.fixedDays ?? 0) + 1
+    }
 
     const fixedBands = usageKwhByBand(fixedWatts, day.date, 0, 24)
     summary.byBand.valle += day.byBand.valle + fixedBands.valle

@@ -43,14 +43,13 @@ function Comparison({ invoice }) {
   }))
   const weekMax = Math.max(0.001, ...weeks.map((week) => week.kwh))
 
-  const spenders = [
-    ...home.devices.map((device) => ({
+  // Cada aparato con lo suyo, los consumos fijos incluidos (la nevera sale con su nombre)
+  const spenders = home.devices
+    .map((device) => ({
       name: device.name,
       cost: logged.byDevice[device.id]?.cost ?? 0,
       color: deviceColor(device.color),
-    })),
-    { name: 'Consumos fijos', cost: logged.fixed.cost, color: 'rgba(0,0,0,.35)' },
-  ]
+    }))
     .filter((item) => item.cost > 0)
     .sort((a, b) => b.cost - a.cost)
   const spendMax = Math.max(0.0001, ...spenders.map((item) => item.cost))
