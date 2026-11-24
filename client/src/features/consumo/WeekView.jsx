@@ -7,6 +7,7 @@ import { addDays, datesBetween, startOfWeek } from '../../domain/time'
 import { dayTitle, rangeLabel, todayISO, weekNumber } from '../../lib/dates'
 import { consumoPath } from '../../lib/useSelectedDate'
 import { BAND_SOFT, weekHeat } from './colors'
+import { FixedLine } from './FixedStrip'
 import { TodayLink } from './TodayLink'
 
 // En el móvil, el día y sus cifras van en un renglón y las 24 celdas debajo, a todo el ancho
@@ -37,6 +38,7 @@ export function WeekView({ home, date }) {
           <p className="page-lead mt-2 text-[12.5px]">
             Cada celda es una hora: cuanto más oscura, más kWh. Pulsa un día para abrirlo.
           </p>
+          <FixedLine fixedLoads={home.fixedLoads} />
         </div>
         <StatRow>
           <Stat label="Semana" value={kwh(week.kwh)} />

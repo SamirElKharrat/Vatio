@@ -7,6 +7,7 @@ import { ErrorNotice } from '../../components/ui/Notice'
 import { Stat, StatRow } from '../../components/ui/Stat'
 import { daySummary } from '../../domain/aggregates'
 import { loggableDevices } from '../../domain/devices'
+import { powerProfile } from '../../domain/power'
 import { usageCost, usageKwh } from '../../domain/cost'
 import { approxEur, eur, kwh } from '../../domain/format'
 import { bandAt, dayBands, isValleDay } from '../../domain/tariff'
@@ -17,6 +18,8 @@ import { dayTitle, todayISO } from '../../lib/dates'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { BAND_BG, BAND_NAME, BAND_SOFT, deviceBorder, deviceColor, deviceColorSoft, deviceInk, deviceText } from './colors'
 import { DayMobile } from './DayMobile'
+import { FixedStrip } from './FixedStrip'
+import { PowerBars, PowerNotice, PowerOverlay } from './PowerWarning'
 import { TodayLink } from './TodayLink'
 import { useBlockDrag } from './useBlockDrag'
 import { UsageEditor } from './UsageEditor'
@@ -154,6 +157,8 @@ export function DayView({ home, date }) {
     ? { ...home, usages: home.usages.map((u) => (u.id === drag.id ? { ...u, start: drag.start, hours: drag.hours } : u)) }
     : home
   const day = daySummary(live, date)
+  // Lo encendido a la vez frente a la potencia contratada; se recalcula mientras se arrastra
+  const power = powerProfile(live, date)
   const { contract } = home
   const isFija = contract.mode === 'fija'
   const bands = dayBands(date)
@@ -277,6 +282,11 @@ export function DayView({ home, date }) {
       </div>
 
       {notice && <div className="mb-4">{notice}</div>}
+      {(!power.hasLimit || power.over.length > 0) && (
+        <div className="mb-4">
+          <PowerNotice profile={power} date={date} devices={home.devices} />
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <div className="min-w-[820px]">
@@ -309,6 +319,18 @@ export function DayView({ home, date }) {
               ))}
             </div>
           </div>
+
+          {power.hasLimit && rows.length > 0 && (
+            <div className={`${GRID} items-center border-t border-line`}>
+              <div className="flex items-center gap-2.5 pr-3.5 pl-1">
+                <span className="flex-1 text-[13px] font-medium">Potencia</span>
+                <span className="font-mono text-[11px] text-ink-3" title="Potencia contratada: punta-llano / valle">
+                  límite {powerLimitLabel(contract)}
+                </span>
+              </div>
+              <PowerBars profile={power} className="h-[44px] pt-1.5" />
+            </div>
+          )}
 
           {rows.length === 0 && (
             <p className="border-t border-line py-6 text-[13.5px] text-ink-2">
@@ -345,6 +367,7 @@ export function DayView({ home, date }) {
                   </div>
                 )}
                 <div className="hour-grid pointer-events-none absolute inset-0" />
+                <PowerOverlay over={power.over} />
                 {date === todayISO() && (
                   <div
                     title="Ahora"
@@ -370,6 +393,7 @@ export function DayView({ home, date }) {
             </div>
           ))}
           <div className="border-t border-line" />
+          <FixedStrip fixedLoads={home.fixedLoads} fixed={day.fixed} className="mt-4" />
         </div>
       </div>
 
@@ -432,6 +456,14 @@ export function DayView({ home, date }) {
       {dialogs}
     </div>
   )
+}
+
+/** «5,75 kW», o «4,6 / 5,75 kW» si punta-llano y valle son distintas */
+function powerLimitLabel(contract) {
+  const format = (value) => String(value).replace('.', ',')
+  const p1 = contract.power.puntaLlano.kw
+  const p3 = contract.power.valle.kw
+  return p1 === p3 || !p3 ? `${format(p1)} kW` : `${format(p1)} / ${format(p3)} kW`
 }
 
 const price = (value, decimals) => value.toFixed(decimals).replace('.', ',') + ' €/kWh'

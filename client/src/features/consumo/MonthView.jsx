@@ -8,6 +8,7 @@ import { datesBetween, weekdayOf } from '../../domain/time'
 import { dayTitle, monthRange, monthYearTitle, todayISO } from '../../lib/dates'
 import { consumoPath } from '../../lib/useSelectedDate'
 import { monthHeat } from './colors'
+import { FixedLine } from './FixedStrip'
 import { TodayLink } from './TodayLink'
 
 const WEEKDAYS = [
@@ -58,6 +59,7 @@ export function MonthView({ home, date }) {
             Cada casilla es un día, con los consumos fijos ya sumados. Pulsa un día para abrirlo.
             {hasFuture && ' Los días que aún no han llegado cuentan sólo los fijos y las rutinas.'}
           </p>
+          <FixedLine fixedLoads={home.fixedLoads} />
         </div>
         <StatRow>
           <Stat label="Mes" value={kwh(month.total.kwh)} />

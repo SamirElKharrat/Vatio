@@ -4,12 +4,14 @@ import { useHousehold } from '../../api/hooks'
 import { periodSummary } from '../../domain/aggregates'
 import { usageCost, usageKwh } from '../../domain/cost'
 import { approxEur, eur, kwh } from '../../domain/format'
+import { powerProfile } from '../../domain/power'
 import { bandAt, dayBands } from '../../domain/tariff'
 import { addDays, datesBetween, formatHM, startOfWeek } from '../../domain/time'
 import { dayTitle, monthRange, monthTitle, todayISO } from '../../lib/dates'
 import { splitUnit } from '../../lib/splitUnit'
 import { consumoPath } from '../../lib/useSelectedDate'
 import { BAND_BG, BAND_NAME, deviceColor, deviceColorSoft } from './colors'
+import { PowerNotice } from './PowerWarning'
 import { TodayLink } from './TodayLink'
 
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
@@ -22,6 +24,7 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
   const isFija = contract.mode === 'fija'
   const bands = dayBands(date)
   const devices = new Map(home.devices.map((device) => [device.id, device]))
+  const power = powerProfile(home, date)
 
   const monday = startOfWeek(date)
   const week = periodSummary(home, datesBetween(monday, addDays(monday, 6))).days
@@ -76,6 +79,14 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
         <div
           className={`relative h-[34px] rounded-[6px] bg-white/6 bg-[repeating-linear-gradient(to_right,rgb(255_255_255/0.14)_0_1px,transparent_1px_25%)] ${isFija ? 'mt-5' : 'mt-1.5'}`}
         >
+          {power.over.map((range) => (
+            <div
+              key={`over-${range.start}`}
+              aria-hidden="true"
+              className="absolute inset-y-0 rounded-[3px] border-x border-dashed border-[oklch(0.72_0.17_28)] bg-[oklch(0.62_0.2_28/0.35)]"
+              style={{ left: `${(range.start / 24) * 100}%`, width: `${((range.end - range.start) / 24) * 100}%` }}
+            />
+          ))}
           {diary.map((usage) => {
             const device = devices.get(usage.deviceId)
             return (
@@ -98,11 +109,33 @@ export function DayMobile({ home, date, day, notice, onOpen, onAdd }) {
           <span>18</span>
           <span>24</span>
         </div>
-        <div className="mt-3.5 flex justify-between border-t border-white/12 pt-3.5 font-mono text-[12px] text-white/70">
-          <span>más los fijos (24 h)</span>
-          <span>{approxEur(day.fixed.cost)}</span>
-        </div>
+        {/* Los fijos no entran en la barra: se despliegan aquí para saber cuáles son */}
+        <details className="group mt-3.5 border-t border-white/12 pt-3.5 font-mono text-[12px] text-white/70">
+          <summary className="flex cursor-pointer list-none justify-between gap-3 [&::-webkit-details-marker]:hidden">
+            <span>
+              más los fijos (24 h) <span className="inline-block transition-transform group-open:rotate-90">›</span>
+            </span>
+            <span>{approxEur(day.fixed.cost)}</span>
+          </summary>
+          {home.fixedLoads.length === 0 ? (
+            <p className="mt-2.5 text-white/55">Ninguno. Añádelos en Fijos y rutinas.</p>
+          ) : (
+            <ul className="mt-2.5 flex flex-col gap-1.5">
+              {home.fixedLoads.map((load) => (
+                <li key={load.id} className="flex justify-between gap-3">
+                  <span className="truncate">{load.name}</span>
+                  <span className="text-white/55">{load.watts} W</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </details>
       </div>
+      {(!power.hasLimit || power.over.length > 0) && (
+        <div className="mt-3.5">
+          <PowerNotice profile={power} date={date} devices={home.devices} />
+        </div>
+      )}
 
       <nav aria-label="Días de la semana" className="mt-5 flex items-end gap-[7px]">
         {week.map((weekDay, i) => {
